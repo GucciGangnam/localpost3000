@@ -13,8 +13,6 @@ export default async function FeedPage() {
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Generate random number
-    const randomNumber = Math.floor(Math.random() * 100);
 
 
 

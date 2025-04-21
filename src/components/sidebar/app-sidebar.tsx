@@ -43,7 +43,7 @@ const items = [
     },
     {
         title: "Discussion",
-        url: "/feed?filter=discussion&sort=hot",
+        url: "/feed?filter=discuss&sort=hot",
         icon: Speech,
     },
     {
