@@ -95,6 +95,23 @@ export function AppSidebar() {
                     <Separator className="mt-2 mb-2" />
 
                     <SidebarGroupContent>
+                        <SidebarGroupLabel>Sections</SidebarGroupLabel>
+                        <SidebarMenu className="text-muted-foreground">
+                            {items.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild>
+                                        <a href={item.url}>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </a>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+<Separator/>
+                    <SidebarGroupContent>
+                        <SidebarGroupLabel>Sections</SidebarGroupLabel>
                         <SidebarMenu className="text-muted-foreground">
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>

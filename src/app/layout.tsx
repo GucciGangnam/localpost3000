@@ -23,6 +23,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+
+// Can i use this space to navigate teh user out of the app if no location?  or is middlewear teh right place?
+
+
   return (
 
     <html lang="en">

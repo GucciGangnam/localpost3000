@@ -15,6 +15,16 @@ export default function SorterAndFilter() {
     const currentFilter = searchParams.get('filter') || 'all'; // Default to 'all'
 
 
+    const removeFilter = (clickedLink: string) => {
+
+        if (clickedLink === currentFilter) {
+            router.push(`/feed?filter=all&sort=${currentSort}`)
+        } else {
+            return;
+        }
+    }
+
+
 
 
 
@@ -49,24 +59,28 @@ export default function SorterAndFilter() {
 
             <div id="filter" className="p-1 w-125 max-w-full flex gap-2 text-sm justify-center flex-wrap">
                 <a
+                    onClick={() => removeFilter('news')}
                     href={`/feed?filter=news&sort=${currentSort}`}
                     className={`text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'news' ? 'text-orange' : ''}`}>
                     <NewspaperIcon size={15} color={currentFilter === 'news' ? 'var(--orange)' : undefined} />
                     News
                 </a>
                 <a
+                    onClick={() => removeFilter('discuss')}
                     href={`/feed?filter=discuss&sort=${currentSort}`}
                     className={`text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'discuss' ? 'text-orange' : ''}`}>
                     <Speech size={15} color={currentFilter === 'discuss' ? 'var(--orange)' : undefined} />
                     Discuss
                 </a>
                 <a
+                    onClick={() => removeFilter('events')}
                     href={`/feed?filter=events&sort=${currentSort}`}
                     className={`text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'events' ? 'text-orange' : ''}`}>
                     <Calendar1 size={15} color={currentFilter === 'events' ? 'var(--orange)' : undefined} />
                     Events
                 </a>
                 <a
+                    onClick={() => removeFilter('commercial')}
                     href={`/feed?filter=commercial&sort=${currentSort}`}
                     className={`text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'commercial' ? 'text-orange' : ''}`}>
                     <Tag size={15} color={currentFilter === 'commercial' ? 'var(--orange)' : undefined} />
