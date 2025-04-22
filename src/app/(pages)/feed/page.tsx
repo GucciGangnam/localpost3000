@@ -4,6 +4,7 @@ import Card from "@/components/feed/card";
 
 
 
+
 // FAKE DB DELE ME 
 const posts = [
     {
@@ -96,6 +97,8 @@ export default async function FeedPage() {
 
     return (
         <div id="page-container" className="flex justify-center">
+
+
 
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 max-w-500'>
                 {posts.map((post) => (

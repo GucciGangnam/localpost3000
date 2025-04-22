@@ -3,6 +3,7 @@
 import { PanelRight } from "lucide-react"
 import { useSidebar } from "../ui/sidebar";
 
+
 // COMPONENT
 export default function NavBar() {
     const { toggleSidebar } = useSidebar()
@@ -19,7 +20,7 @@ export default function NavBar() {
             </div>
 
             <div id="right">
-                New
+                r
             </div>
 
         </nav>

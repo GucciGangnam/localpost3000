@@ -109,7 +109,7 @@ export function AppSidebar() {
                             ))}
                         </SidebarMenu>
                     </SidebarGroupContent>
-<Separator/>
+                    <Separator />
                     <SidebarGroupContent>
                         <SidebarGroupLabel>Sections</SidebarGroupLabel>
                         <SidebarMenu className="text-muted-foreground">

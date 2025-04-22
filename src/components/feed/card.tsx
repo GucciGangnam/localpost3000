@@ -1,8 +1,17 @@
 //  IMPORTS 
-import { Heart, MessageSquare, Waypoints, Pin, Verified, NewspaperIcon, Speech, Calendar1, Tag } from "lucide-react"
+import { Heart, MessageSquare, Waypoints, Pin, Verified, NewspaperIcon, Speech, Calendar1, Tag, Ellipsis } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-type cardProps = { 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+type cardProps = {
     owner: string;
     timeStamp: number;
     content: string;
@@ -12,7 +21,7 @@ type cardProps = {
 
 
 // COMPONENT
-export default function Card({post}: { post: cardProps }) {
+export default function Card({ post }: { post: cardProps }) {
 
     const utcTimeNow = new Date().getTime();
     const timeDifference = utcTimeNow - post.timeStamp;
@@ -51,14 +60,6 @@ export default function Card({post}: { post: cardProps }) {
     return (
         <div className={`relative bg-muted flex p-2 gap-2 rounded-md ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
 
-            {post.category === "news" && <NewspaperIcon color="var(--orange)" size={20} className="absolute right-1 opacity-100" />}
-            {post.category === "discuss" && <Speech color="var(--orange)" size={20} className="absolute right-1 opacity-100" />}
-            {post.category === "event" && <Calendar1 color="var(--orange)" size={20} className="absolute right-1 opacity-100" />}
-            {post.category === "commercial" && <Tag color="var(--orange)" size={20} className="absolute right-1 opacity-100" />}
-
-
-
-
 
             <div id="left" className="pt-1">
                 <Avatar>
@@ -70,7 +71,37 @@ export default function Card({post}: { post: cardProps }) {
             <div id="right" className="flex flex-col gap-2 grow justify-between">
                 <div id="right-top" className=" flex flex-col gap-2 ">
                     <div id="meta">
-                        <span className="flex items-center gap-2"><div id="name">{post.owner}</div> <div><Verified size={20} fill="var(--orange)" color="var(--background)" /></div></span>
+
+                        <span className="flex items-center gap-2">
+                            <div id="name">{post.owner}</div>
+                            <div className=""><Verified size={20} fill="var(--orange)" color="var(--background)" /></div>
+
+                            {post.category === "news" &&
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                    <NewspaperIcon color="var(--orange)" size={10} />
+                                    News
+                                </div>
+                            }
+                            {post.category === "discuss" &&
+                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                    <Speech color="var(--orange)" size={10} />
+                                    Discuss
+                                </div>
+                            }
+                            {post.category === "events" &&
+                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                    <Calendar1 color="var(--orange)" size={10} />
+                                    Event
+                                </div>
+                            }
+                            {post.category === "commercial" &&
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                    <Tag color="var(--orange)" size={10} />
+                                    Commercial
+                                </div>
+                            }
+                        </span>
+
                         <div id="timestamp" className="text-xs text-muted-foreground">{timeAgo}</div>
                     </div>
                 </div>
@@ -82,36 +113,52 @@ export default function Card({post}: { post: cardProps }) {
                     {post.attachment && post.attachment.startsWith("http") &&
                         <div
                             id="attachment"
-                            className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${
-                                post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
-                            }`}
+                            className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
+                                }`}
                         >
                             <img src={post.attachment} alt="Attachment" className="rounded-md" />
                         </div>
                     }
+                </div>
+
+
+                <div id="right-bottom" className="relative flex justify-end gap-4">
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="focus:outline-0"><Ellipsis color="var(--input)"/></DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-muted">
+                            <DropdownMenuLabel>More actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="hover:bg-input">Pin</DropdownMenuItem>
+                            <DropdownMenuItem className="hover:bg-input">Report</DropdownMenuItem>
+                            <DropdownMenuItem className="hover:bg-input">Hide</DropdownMenuItem>
+                            <DropdownMenuItem className="hover:bg-input">Close</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+
+                        <Waypoints
+                            fill="var(--input)"
+                            color="var(--input)"
+                        />
+                        <MessageSquare
+                            fill="var(--input)"
+                            color="var(--input)"
+                        />
+                        <Heart
+                            fill="var(--input)"
+                            color="var(--input)"
+                        />
+                        <Pin
+                            fill="var(--input)"
+                            color="var(--input)"
+                        />
 
 
                 </div>
 
 
-                <div id="right-bottom" className="flex justify-end gap-4">
-                    <Waypoints
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <MessageSquare
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <Heart
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <Pin
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                </div>
+
             </div>
 
 
