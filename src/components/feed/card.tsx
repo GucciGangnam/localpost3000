@@ -129,7 +129,6 @@ export default function Card({ post }: { post: cardProps }) {
                         <DropdownMenuContent className="bg-muted">
                             <DropdownMenuLabel>More actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="hover:bg-input">Pin</DropdownMenuItem>
                             <DropdownMenuItem className="hover:bg-input">Report</DropdownMenuItem>
                             <DropdownMenuItem className="hover:bg-input">Hide</DropdownMenuItem>
                             <DropdownMenuItem className="hover:bg-input">Close</DropdownMenuItem>

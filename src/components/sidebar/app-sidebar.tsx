@@ -83,10 +83,10 @@ export function AppSidebar() {
                     {/*  SIGNED OUT */}
                     <SignedOut>
                         <div className="flex flex-col gap-1">
-                            <SignUpButton>
+                            <SignUpButton mode="modal">
                                 <Button className="cursor-pointer">Sign up</Button>
                             </SignUpButton>
-                            <SignInButton>
+                            <SignInButton mode="modal">
                                 <Button className="cursor-pointer">Log in</Button>
                             </SignInButton>
                         </div>
@@ -94,22 +94,6 @@ export function AppSidebar() {
 
                     <Separator className="mt-2 mb-2" />
 
-                    <SidebarGroupContent>
-                        <SidebarGroupLabel>Sections</SidebarGroupLabel>
-                        <SidebarMenu className="text-muted-foreground">
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </a>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                    <Separator />
                     <SidebarGroupContent>
                         <SidebarGroupLabel>Sections</SidebarGroupLabel>
                         <SidebarMenu className="text-muted-foreground">

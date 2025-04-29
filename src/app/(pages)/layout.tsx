@@ -1,22 +1,15 @@
 import type { Metadata } from 'next'
-// CLERK
-import {
-    ClerkProvider,
-    SignInButton,
-    SignUpButton,
-    SignedIn,
-    SignedOut,
-    UserButton,
-} from '@clerk/nextjs'
+
 // SIDEBAR 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-// NAVBAR
-import NavBar from '@/components/navbar/nav-bar'
+
+
 
 
 import { Geist, Geist_Mono } from 'next/font/google'
 import '../globals.css'
+import NavBar from '@/components/navbar/nav-bar'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -40,14 +33,13 @@ export default function RootLayout({
 }>) {
 
     return (
-        <ClerkProvider>
+
             <html lang="en">
                 <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                     {/* Sidebar */}
                     <SidebarProvider>
                         <AppSidebar />
                         <main className='w-full'>
-                            {/* Nav Bar */}
                             <NavBar />
                             {/* Page */}
                             {children}
@@ -55,6 +47,6 @@ export default function RootLayout({
                     </SidebarProvider>
                 </body>
             </html>
-        </ClerkProvider>
+
     )
 }

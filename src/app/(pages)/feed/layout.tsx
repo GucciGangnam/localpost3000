@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import '../../globals.css'
 import SorterAndFilter from '@/components/sortandfilter/sort-and-filter'
+import NavBarFeed from '@/components/navbar/nav-bar'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -29,7 +30,8 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 {/* Filter sorter? */}
-                <SorterAndFilter/>
+                {/* Nav Bar */}
+                <SorterAndFilter />
                 {children}
 
             </body>

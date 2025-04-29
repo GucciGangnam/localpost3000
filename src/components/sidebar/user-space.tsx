@@ -1,9 +1,6 @@
 'use client'
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
-import { useState } from 'react';
-import { SidebarMenuItem, SidebarMenuButton, SidebarGroupContent, SidebarMenu } from '../ui/sidebar';
-import { User } from "lucide-react"
 
 
 // Menu items.
@@ -16,7 +13,7 @@ export default function UserSpace() {
 
     return (
         <a 
-        href='/profile'
+        href='/myprofile'
         className='flex flex-col rounded-sm p-2 pl-1 cursor-pointer hover:bg-muted'>
             <div
                 id='top'
