@@ -16,8 +16,6 @@ export default function GenericDivSkeleton() {
             <Skeleton className="w-full h-10 rounded-full" />
             <Skeleton className="w-full h-10 rounded-full" />
 
-
-
         </div>
 
     )

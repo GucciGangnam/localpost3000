@@ -14,6 +14,12 @@ export default function SorterAndFilter() {
     const currentSort = searchParams.get('sort') || 'hot'; // Default to 'hot'
     const currentFilter = searchParams.get('filter') || 'all'; // Default to 'all'
 
+    // Allowed filters
+    const allowedFilters = ['news', 'discuss', 'events', 'commercial'];
+    // Allowed sorts
+    const allowedSorts = ['hot', 'newest', 'oldest'];
+
+
 
     const removeFilter = (clickedLink: string) => {
 

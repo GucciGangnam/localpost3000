@@ -69,7 +69,6 @@ export default async function Page() {
 
                 <div id="buttos-container" className="flex flex-col gap-2">
 
-
                     <button className="bg-muted hover:bg-input text-muted-foreground rounded-md p-2 flex justify-center items-center gap-2"><GlobeLock size={20} color="var(--muted-foreground)" />Privacy</button>
                     <button className="bg-muted hover:bg-input text-muted-foreground rounded-md p-2 flex justify-center items-center gap-2"><KeyRound size={20} color="var(--muted-foreground)" />Security</button>
                     <button className="bg-muted hover:bg-input text-muted-foreground rounded-md p-2 flex justify-center items-center gap-2"><CreditCard size={20} color="var(--muted-foreground)" />Billing</button>
