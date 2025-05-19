@@ -94,14 +94,16 @@ import { redirect } from 'next/navigation';
 //     }
 // ]
 interface Post {
-    id: number;
-    owner: string;
+    id: string;
+    owner: Promise<string>;
     timeStamp: number;
     content: string;
     attachment: string | null;
     category: 'news' | 'discuss' | 'event' | 'commercial';
     hotness: number;
 }
+
+
 
 
 
@@ -135,6 +137,7 @@ export default async function FeedPage(
 
     const response = await getAllPosts();
     const posts: Post[] = response.data ?? [];
+    console.log(posts)
 
 
 
@@ -142,8 +145,8 @@ export default async function FeedPage(
     return (
         <>
             {posts.length === 0 ? <NoPostsFound /> :
-                <div id="page-container" className="flex justify-center">
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 max-w-500'>
+                <div id="page-container" className="flex justify-center w-full">
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 w-full'>
                         {posts.map((post) => (
                             <Card key={post.id} post={post} />
                         ))}

@@ -12,11 +12,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 type cardProps = {
-    owner: string;
+    id: string;
+    owner: Promise<string>;
     timeStamp: number;
     content: string;
     attachment: string | null;
-    category: string;
+    category: 'news' | 'discuss' | 'event' | 'commercial';
+    hotness: number;
 }
 
 
@@ -26,13 +28,6 @@ export default function Card({ post }: { post: cardProps }) {
     const utcTimeNow = new Date().getTime();
     const timeDifference = utcTimeNow - post.timeStamp;
     const timeDifferenceInMinutes = Math.floor(timeDifference / (1000 * 60));
-    // If the time difference is less than 1 minute, show "Just now"
-    // if the time difference is less than 1 hour, show "X minutes ago"
-    // if the time difference is less than 1 day, show "X hours ago"
-    // if the time difference is less than 1 week, show "X days ago"
-    // if the time difference is less than 1 month, show "X weeks ago"
-    // if the time difference is less than 1 year, show "X months ago"
-    // if the time difference is more than 1 years ago show "over a year ago"
     let timeAgo = "";
     if (timeDifferenceInMinutes < 1) {
         timeAgo = "Just now";
@@ -58,8 +53,7 @@ export default function Card({ post }: { post: cardProps }) {
 
 
     return (
-        <div className={`relative bg-muted flex p-2 gap-2 rounded-md ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
-
+        <div className={`relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
 
             <div id="left" className="pt-1">
                 <Avatar>
@@ -88,7 +82,7 @@ export default function Card({ post }: { post: cardProps }) {
                                     Discuss
                                 </div>
                             }
-                            {post.category === "events" &&
+                            {post.category === "event" &&
                                 <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
                                     <Calendar1 color="var(--orange)" size={10} />
                                     Event
@@ -98,6 +92,12 @@ export default function Card({ post }: { post: cardProps }) {
                                 <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
                                     <Tag color="var(--orange)" size={10} />
                                     Commercial
+                                </div>
+                            }
+                            {!post.category &&
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                    <Tag color="var(--orange)" size={10} />
+                                    None
                                 </div>
                             }
                         </span>
@@ -125,7 +125,7 @@ export default function Card({ post }: { post: cardProps }) {
                 <div id="right-bottom" className="relative flex justify-end gap-4">
 
                     <DropdownMenu>
-                        <DropdownMenuTrigger className="focus:outline-0"><Ellipsis color="var(--input)"/></DropdownMenuTrigger>
+                        <DropdownMenuTrigger className="focus:outline-0"><Ellipsis color="var(--input)" /></DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-muted">
                             <DropdownMenuLabel>More actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
@@ -136,22 +136,22 @@ export default function Card({ post }: { post: cardProps }) {
                     </DropdownMenu>
 
 
-                        <Waypoints
-                            fill="var(--input)"
-                            color="var(--input)"
-                        />
-                        <MessageSquare
-                            fill="var(--input)"
-                            color="var(--input)"
-                        />
-                        <Heart
-                            fill="var(--input)"
-                            color="var(--input)"
-                        />
-                        <Pin
-                            fill="var(--input)"
-                            color="var(--input)"
-                        />
+                    <Waypoints
+                        fill="var(--input)"
+                        color="var(--input)"
+                    />
+                    <MessageSquare
+                        fill="var(--input)"
+                        color="var(--input)"
+                    />
+                    <Heart
+                        fill="var(--input)"
+                        color="var(--input)"
+                    />
+                    <Pin
+                        fill="var(--input)"
+                        color="var(--input)"
+                    />
 
 
                 </div>
