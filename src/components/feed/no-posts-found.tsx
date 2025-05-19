@@ -1,6 +1,7 @@
 // IMPORTS 
 import { Ripple } from "../magicui/ripple"
 import { MapPinOff } from "lucide-react"
+import NewPostDialog from "../navbar/new-post-dialog"
 
 
 // COMPONENT
@@ -11,6 +12,7 @@ export default function NoPostsFound() {
             <MapPinOff/>
             <p>No posts aroud here, unfortunatly</p>
             <p>Create a new post to be the first</p>
+            <NewPostDialog />
 
             
         </div>

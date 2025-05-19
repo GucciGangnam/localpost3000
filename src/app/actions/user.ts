@@ -12,11 +12,11 @@ export const createUser = async (firstname: string, lastname: string, userId: st
     try {
         client = await pool.connect();
         const query = `
-            INSERT INTO users (clerk_id, first_name, last_name)
+            INSERT INTO users (id, first_name, last_name)
             VALUES ($1, $2, $3)
             RETURNING *;
         `;
-        const values = [userId, firstname, lastname]; // Assuming clerk_id now holds userId
+        const values = [userId, firstname, lastname]; 
         const result = await client.query(query, values);
         client.release();
         return { success: true, data: result.rows[0] }; // Return success and data
@@ -38,7 +38,7 @@ export const updateUserBio = async (userId: string, bio: string) => {
         const query = `
             UPDATE users
             SET bio = $1
-            WHERE clerk_id = $2
+            WHERE id = $2
             RETURNING *;
         `;
         const values = [bio, userId];
@@ -62,7 +62,7 @@ export const getUserInfo = async (userId: string) => {
     try {
         client = await pool.connect();
         const query = `
-            SELECT first_name, last_name, bio FROM users WHERE clerk_id = $1;
+            SELECT first_name, last_name, bio FROM users WHERE id = $1;
         `;
         const values = [userId];
         const result = await client.query(query, values);

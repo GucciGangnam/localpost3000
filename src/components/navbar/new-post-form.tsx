@@ -1,4 +1,6 @@
+
 //IMPORTS 
+import { useEffect } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "../ui/button";
@@ -12,31 +14,70 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+// ACTIONS 
+import { createPost } from "@/app/actions/post";
+import { redirect } from "next/navigation";
+
 
 //COMPONENT
 
 export default function NewPostForm() {
 
-    const { user, isLoaded } = useUser()
+    const { user, isLoaded } = useUser();
     const userName = isLoaded ? user?.fullName : "User Name"
     const userImage = isLoaded ? user?.imageUrl : "/default-avatar.png"
-
-
-        // Newpost states 
-        const [newPostContent, setNewPostContent] = useState('');
-        // New Post Handlers 
-        const handleChangePostContent = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            setNewPostContent(e.target.value);
+    // Get users coordinates 
+    const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number }>({ latitude: 0.0, longitude: 0.0 });
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    setCoordinates({ latitude, longitude });
+                    console.log('Latitude:', latitude);
+                    console.log('Longitude:', longitude);
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
         }
-        const submitNewPost = () => {
-            if (newPostContent.length < 1) {
-                return;
+    }
+    // Call getLocation when the component mounts
+    useEffect(() => {
+        getLocation();
+    }, []);
+
+
+
+    // Newpost states 
+    const [newPostContent, setNewPostContent] = useState('');
+    // New Post Handlers 
+    const handleChangePostContent = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setNewPostContent(e.target.value);
+    }
+    const submitNewPost = async () => {
+        if (newPostContent.length < 1) {
+            return;
+        }
+        console.log(newPostContent.length)
+        console.log("New post submitted:", newPostContent, coordinates);
+        if (user) {
+            try {
+                let response = await createPost(user.id, newPostContent, coordinates);
+                console.log(response)
+            } catch (err) {
+                console.error("Error creating post:", err);
             }
-            console.log(newPostContent.length)
-            console.log("New post submitted:", newPostContent);
-            setNewPostContent('');
+        } else {
+            redirect("/");
         }
-    
+        setNewPostContent('');
+    }
+
 
 
     return (
@@ -75,7 +116,9 @@ export default function NewPostForm() {
 
                 <div id="bottom" className="w-fill flex justify-between items-center">
                     <button className="bg-muted px-4 rounded-sm text-muted-foreground hover:bg-input">Add photo</button>
-                    <Button onClick={submitNewPost} className="bg-orange hover:bg-orange hover:opacity-80">Post</Button>
+                    <DialogTrigger onClick={submitNewPost} className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
+                        Post
+                    </DialogTrigger>
                 </div>
             </div>
         </DialogContent>

@@ -9,8 +9,10 @@ import { redirect } from "next/navigation";
 // COMPONENT
 export default async function Page() {
 
+    console.log("On Boarding Running now");
+
     // simulate 2 second delay
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => setTimeout(resolve, 4000));
 
 
     const { userId } = await auth();

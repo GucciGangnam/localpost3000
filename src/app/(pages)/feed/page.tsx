@@ -3,7 +3,7 @@
 import Card from "@/components/feed/card";
 import NoPostsFound from "@/components/feed/no-posts-found";
 // ACTIONS
-import { createPost } from "@/app/actions/post";
+import { getAllPosts } from "@/app/actions/post";
 import { redirect } from 'next/navigation';
 
 
@@ -103,7 +103,6 @@ interface Post {
     hotness: number;
 }
 
-const posts: Post[] = [];
 
 
 
@@ -121,7 +120,7 @@ export default async function FeedPage(
     console.log("filter", filter)
     console.log("sort", sort)
 
-    const filters = ['all', 'news', 'discuss', 'event', 'commercial'];
+    const filters = ['all', 'news', 'discuss', 'events', 'commercial'];
     const sorts = ['hot', 'newest', 'oldest'];
     // redirect user if the filter or sort is not valid
     if (!filters.includes(filter)) {
@@ -133,6 +132,10 @@ export default async function FeedPage(
 
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const response = await getAllPosts();
+    const posts: Post[] = response.data ?? [];
+
 
 
 
