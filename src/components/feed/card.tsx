@@ -1,5 +1,5 @@
 //  IMPORTS 
-import { Heart, MessageSquare, Waypoints, Pin, Verified, NewspaperIcon, Speech, Calendar1, Tag, Ellipsis } from "lucide-react"
+import { Heart, MessageSquare, Waypoints, Pin, Verified, NewspaperIcon, Speech, Calendar1, Tag, Ellipsis, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import {
@@ -11,19 +11,19 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type cardProps = {
+interface PostForClient {
     id: string;
-    owner: Promise<string>;
+    owner: string; // This will now be the user's full name
+    ownerAvatar: string; // New field for the avatar URL
     timeStamp: number;
     content: string;
     attachment: string | null;
-    category: 'news' | 'discuss' | 'event' | 'commercial';
+    category: string;
     hotness: number;
 }
 
-
 // COMPONENT
-export default function Card({ post }: { post: cardProps }) {
+export default function Card({ post }: { post: PostForClient }) {
 
     const utcTimeNow = new Date().getTime();
     const timeDifference = utcTimeNow - post.timeStamp;
@@ -57,8 +57,10 @@ export default function Card({ post }: { post: cardProps }) {
 
             <div id="left" className="pt-1">
                 <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={post.ownerAvatar} />
+                    <AvatarFallback>
+                        {post.owner.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
+                    </AvatarFallback>
                 </Avatar>
             </div>
 
@@ -70,32 +72,38 @@ export default function Card({ post }: { post: cardProps }) {
                             <div id="name">{post.owner}</div>
                             <div className=""><Verified size={20} fill="var(--orange)" color="var(--background)" /></div>
 
+                            {post.category === "none" &&
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
+                                    <CircleSlash2 color="var(--orange)" size={10} />
+                                    None
+                                </div>
+                            }
                             {post.category === "news" &&
-                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <NewspaperIcon color="var(--orange)" size={10} />
                                     News
                                 </div>
                             }
                             {post.category === "discuss" &&
-                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <Speech color="var(--orange)" size={10} />
                                     Discuss
                                 </div>
                             }
                             {post.category === "event" &&
-                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                <div className="flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <Calendar1 color="var(--orange)" size={10} />
                                     Event
                                 </div>
                             }
                             {post.category === "commercial" &&
-                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <Tag color="var(--orange)" size={10} />
                                     Commercial
                                 </div>
                             }
                             {!post.category &&
-                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-xs bg-input">
+                                <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <Tag color="var(--orange)" size={10} />
                                     None
                                 </div>
@@ -135,7 +143,7 @@ export default function Card({ post }: { post: cardProps }) {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-
+                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
                     <Waypoints
                         fill="var(--input)"
                         color="var(--input)"
@@ -148,10 +156,13 @@ export default function Card({ post }: { post: cardProps }) {
                         fill="var(--input)"
                         color="var(--input)"
                     />
-                    <Pin
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
+                    <button className="hover:bg-input rounded-md p-1">
+                        <Pin
+                            fill="var(--input)"
+                            color="var(--input)"
+                        />
+                    </button>
+                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
 
 
                 </div>

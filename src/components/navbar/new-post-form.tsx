@@ -5,7 +5,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog"
 import { useUser } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { Textarea } from "@/components/ui/textarea"
-import { Speech, NewspaperIcon, Tag, Calendar1 } from "lucide-react";
+import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2 } from "lucide-react";
 import { useState } from "react";
 import {
     Select,
@@ -20,6 +20,9 @@ import { redirect } from "next/navigation";
 import { create } from "domain";
 import { getLocation } from "@/lib/utils"
 
+// TYPES 
+type allowedTags = 'none' | 'news' | 'discuss' | 'event' | 'commercial';
+
 
 //COMPONENT
 
@@ -31,6 +34,7 @@ export default function NewPostForm() {
 
     // Newpost states 
     const [newPostContent, setNewPostContent] = useState('');
+    const [newPostTag, setNewPostTag] = useState<allowedTags>('none');
     // New Post Handlers 
     const handleChangePostContent = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewPostContent(e.target.value);
@@ -45,20 +49,20 @@ export default function NewPostForm() {
 
         const location = await getLocation();
 
-        if (!location){ 
+        if (!location) {
             alert("Location not found, please enable location services")
             redirect('/');
         }
 
-        const response = await createPost(user.id, newPostContent, location);
+        const response = await createPost(user.id, newPostContent, newPostTag, location);
         if (response.success) {
             console.log("Post created successfully:", response.data);
-            redirect('/feed');
         } else {
             console.error("Post creation failed:", response.error);
             alert("There was a connection issue, please try again later")
         }
         setNewPostContent(''); // Clear the textarea after submission
+        setNewPostTag('none'); // Reset the tag selection
 
 
 
@@ -87,16 +91,14 @@ export default function NewPostForm() {
                     <Textarea maxLength={140} value={newPostContent} onChange={handleChangePostContent} />
                 </div>
 
-                <Select >
+                <Select onValueChange={(value) => setNewPostTag(value as allowedTags)}>
                     <SelectTrigger className="w-fit">
                         <SelectValue placeholder="Tag" className="text-red-muted" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem className="hover:bg-muted flex flex-row-reverse" value="news">
-                            <NewspaperIcon />
-                            News
-                        </SelectItem>
-                        <SelectItem className="hover:bg-muted" value="discussion"><Speech />Discussion</SelectItem>
+                        <SelectItem className="hover:bg-muted" value="none"><CircleSlash2 />None</SelectItem>
+                        <SelectItem className="hover:bg-muted" value="news"><NewspaperIcon />News</SelectItem>
+                        <SelectItem className="hover:bg-muted" value="discuss"><Speech />Discussion</SelectItem>
                         <SelectItem className="hover:bg-muted" value="event"><Calendar1 />Event</SelectItem>
                         <SelectItem className="hover:bg-muted" value="commercial"><Tag />Commercial</SelectItem>
                     </SelectContent>
