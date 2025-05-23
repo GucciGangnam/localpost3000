@@ -17,6 +17,8 @@ import {
 // ACTIONS 
 import { createPost } from "@/app/actions/post";
 import { redirect } from "next/navigation";
+import { create } from "domain";
+import { getLocation } from "@/lib/utils"
 
 
 //COMPONENT
@@ -26,32 +28,6 @@ export default function NewPostForm() {
     const { user, isLoaded } = useUser();
     const userName = isLoaded ? user?.fullName : "User Name"
     const userImage = isLoaded ? user?.imageUrl : "/default-avatar.png"
-    // Get users coordinates 
-    const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number }>({ latitude: 0.0, longitude: 0.0 });
-    const getLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    setCoordinates({ latitude, longitude });
-                    console.log('Latitude:', latitude);
-                    console.log('Longitude:', longitude);
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                }
-            );
-        } else {
-            console.error('Geolocation is not supported by this browser.');
-        }
-    }
-    // Call getLocation when the component mounts
-    useEffect(() => {
-        getLocation();
-    }, []);
-
-
 
     // Newpost states 
     const [newPostContent, setNewPostContent] = useState('');
@@ -63,19 +39,31 @@ export default function NewPostForm() {
         if (newPostContent.length < 1) {
             return;
         }
-        console.log(newPostContent.length)
-        console.log("New post submitted:", newPostContent, coordinates);
-        if (user) {
-            try {
-                let response = await createPost(user.id, newPostContent, coordinates);
-                console.log(response)
-            } catch (err) {
-                console.error("Error creating post:", err);
-            }
-        } else {
-            redirect("/");
+        if (!user || !user.id) {
+            redirect('/');
         }
-        setNewPostContent('');
+
+        const location = await getLocation();
+
+        if (!location){ 
+            alert("Location not found, please enable location services")
+            redirect('/');
+        }
+
+        const response = await createPost(user.id, newPostContent, location);
+        if (response.success) {
+            console.log("Post created successfully:", response.data);
+            redirect('/feed');
+        } else {
+            console.error("Post creation failed:", response.error);
+            alert("There was a connection issue, please try again later")
+        }
+        setNewPostContent(''); // Clear the textarea after submission
+
+
+
+
+
     }
 
 

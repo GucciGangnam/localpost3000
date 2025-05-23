@@ -3,7 +3,7 @@
 import Card from "@/components/feed/card";
 import NoPostsFound from "@/components/feed/no-posts-found";
 // ACTIONS
-import { getAllPosts } from "@/app/actions/post";
+import { getAllPostsByNewset } from "@/app/actions/post";
 import { redirect } from 'next/navigation';
 
 
@@ -132,12 +132,8 @@ export default async function FeedPage(
         redirect('/feed?filter=all&sort=hot')
     }
 
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const response = await getAllPosts();
+    const response = await getAllPostsByNewset(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
     const posts: Post[] = response.data ?? [];
-    console.log(posts)
 
 
 

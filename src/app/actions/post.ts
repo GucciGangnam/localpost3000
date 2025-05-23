@@ -7,8 +7,16 @@ import pool from "@/lib/db"
 // CREATE POST 
 export const createPost = async (clerkID: string, postContent: string, coordinates: {
     latitude: number;
-    longitude: number
-}) => {
+    longitude: number;
+} | null) => {
+    if (!coordinates) {
+        return { success: false, error: 'Coordinates are required' }; // Return failure if coordinates are not provided
+    }
+
+    console.log("back reached and coords are not null.  heres what server got from client")
+    console.log(clerkID, postContent, coordinates)
+
+
     let client;
     const longitude = coordinates.longitude;
     const latitude = coordinates.latitude;
@@ -66,8 +74,9 @@ const getOwnerName = async (userId: string) => {
 
 
 // THIS GETS ALL POSTS BY NEWEST
-export const getAllPosts = async () => {
+export const getAllPostsByNewset = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
     let client;
+    console.log("getting all posts by newest sorted by ", filter) 
     try {
         client = await pool.connect();
         const query = `
@@ -76,7 +85,7 @@ export const getAllPosts = async () => {
             LIMIT 20;
         `;
         const result = await client.query(query);
-        // MOdify each post to match the Post interface
+        // Modify each post to match the Post interface
         const posts = result.rows.map((post: any) => ({
             id: post.id,
             owner: getOwnerName(post.user_id),
