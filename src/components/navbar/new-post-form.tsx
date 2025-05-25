@@ -17,7 +17,6 @@ import {
 // ACTIONS 
 import { createPost } from "@/app/actions/post";
 import { redirect } from "next/navigation";
-import { create } from "domain";
 import { getLocation } from "@/lib/utils"
 
 // TYPES 
@@ -64,10 +63,6 @@ export default function NewPostForm() {
         setNewPostContent(''); // Clear the textarea after submission
         setNewPostTag('none'); // Reset the tag selection
 
-
-
-
-
     }
 
 
@@ -106,9 +101,18 @@ export default function NewPostForm() {
 
                 <div id="bottom" className="w-fill flex justify-between items-center">
                     <button className="bg-muted px-4 rounded-sm text-muted-foreground hover:bg-input">Add photo</button>
-                    <DialogTrigger onClick={submitNewPost} className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
-                        Post
-                    </DialogTrigger>
+
+                    {newPostContent.length < 1 ? (
+                        <button onClick={()=> console.log("Nope")} className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
+                            Post
+                        </button>
+                    ) :
+                        (
+                            <DialogTrigger onClick={submitNewPost} className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
+                                Post
+                            </DialogTrigger>
+                        )}
+
                 </div>
             </div>
         </DialogContent>
