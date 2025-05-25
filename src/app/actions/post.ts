@@ -77,13 +77,8 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
 // GETTING POSTS
 
 // THIS GETS ALL POSTS BY NEWEST
-export const getAllPostsByNewset = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
     let client;
-
-
-
-
-
     try {
         client = await pool.connect();
         // ADD FILTER QUERY LOGIC !!!!!!!!!!
@@ -169,3 +164,184 @@ export const getAllPostsByNewset = async (filter: "all" | 'news' | 'discuss' | '
         return { success: false, error: error.message || 'Failed to get posts' };
     }
 }
+
+// THIS GETS ALL POSTS BY OLDEST
+export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+    let client;
+    try {
+        client = await pool.connect();
+        // ADD FILTER QUERY LOGIC !!!!!!!!!!
+
+        // If filter is 'all', we want to get all posts regardless of category
+        let query: string;
+        if (filter === 'all') {
+            query = `
+                SELECT * FROM posts
+                ORDER BY created_at ASC
+                LIMIT 20;
+            `;
+        } else {
+            // If filter is not 'all', we filter by the specified category
+            query = `
+                SELECT * FROM posts WHERE category = $1
+                ORDER BY created_at ASC
+                LIMIT 20;
+            `;
+        }
+        // Execute the query with the appropriate filter
+        const values = filter === 'all' ? [] : [filter];
+        const result = await client.query(query, values);
+        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
+
+
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Collect all unique Clerk user IDs from the fetched posts
+        const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
+        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
+        // We'll store them in a Map for quick lookup
+        const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
+        // Use Promise.all to fetch all user details concurrently for efficiency
+        await Promise.all(
+            uniqueClerkUserIds.map(async (clerkUserId) => {
+                try {
+                    const clerk = await clerkClient();
+                    const user = await clerk.users.getUser(clerkUserId);
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: user.imageUrl,
+                        fullName: user.fullName, // Clerk provides fullName
+                        username: user.username,  // Clerk provides username
+                    });
+                } catch (error) {
+                    console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
+                    // Fallback in case a user is not found or there's an API error
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        fullName: null,
+                        username: null,
+                    });
+                }
+            })
+        );
+
+        // 3. Modify each post to include owner's name and avatar URL
+        const posts: PostForClient[] = dbPosts.map((post: DbPost) => {
+            const userData = usersDataMap.get(post.user_id);
+
+            // Determine the display name (fullName preferred, then username, then generic)
+            const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
+
+            return {
+                id: post.id,
+                owner: ownerDisplayName, // Use the name from Clerk
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                timeStamp: post.created_at.getTime(),
+                content: post.content_text,
+                attachment: post.attachment_url,
+                category: post.category,
+                hotness: post.hotness,
+            };
+        });
+
+        client.release();
+        return { success: true, data: posts };
+
+    } catch (error: any) {
+        console.error('Database error getting posts or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get posts' };
+    }
+}
+
+// THIS GETS ALL POSTS BY HOTNESS
+export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+    let client;
+    try {
+        client = await pool.connect();
+        // ADD FILTER QUERY LOGIC !!!!!!!!!!
+
+        // If filter is 'all', we want to get all posts regardless of category
+        let query: string;
+        if (filter === 'all') {
+            query = `
+                SELECT * FROM posts
+                ORDER BY hotness DESC
+                LIMIT 20;
+            `;
+        } else {
+            // If filter is not 'all', we filter by the specified category
+            query = `
+                SELECT * FROM posts WHERE category = $1
+                ORDER BY hotness DESC
+                LIMIT 20;
+            `;
+        }
+        // Execute the query with the appropriate filter
+        const values = filter === 'all' ? [] : [filter];
+        const result = await client.query(query, values);
+        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
+
+
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Collect all unique Clerk user IDs from the fetched posts
+        const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
+        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
+        // We'll store them in a Map for quick lookup
+        const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
+        // Use Promise.all to fetch all user details concurrently for efficiency
+        await Promise.all(
+            uniqueClerkUserIds.map(async (clerkUserId) => {
+                try {
+                    const clerk = await clerkClient();
+                    const user = await clerk.users.getUser(clerkUserId);
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: user.imageUrl,
+                        fullName: user.fullName, // Clerk provides fullName
+                        username: user.username,  // Clerk provides username
+                    });
+                } catch (error) {
+                    console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
+                    // Fallback in case a user is not found or there's an API error
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        fullName: null,
+                        username: null,
+                    });
+                }
+            })
+        );
+
+        // 3. Modify each post to include owner's name and avatar URL
+        const posts: PostForClient[] = dbPosts.map((post: DbPost) => {
+            const userData = usersDataMap.get(post.user_id);
+
+            // Determine the display name (fullName preferred, then username, then generic)
+            const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
+
+            return {
+                id: post.id,
+                owner: ownerDisplayName, // Use the name from Clerk
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                timeStamp: post.created_at.getTime(),
+                content: post.content_text,
+                attachment: post.attachment_url,
+                category: post.category,
+                hotness: post.hotness,
+            };
+        });
+
+        client.release();
+        return { success: true, data: posts };
+
+    } catch (error: any) {
+        console.error('Database error getting posts or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get posts' };
+    }
+}
+
+
+

@@ -3,8 +3,9 @@
 import Card from "@/components/feed/card";
 import NoPostsFound from "@/components/feed/no-posts-found";
 // ACTIONS
-import { getAllPostsByNewset } from "@/app/actions/post";
+import { getAllPostsByNewest, getAllPostsByOldest, getAllPostsByHot } from "@/app/actions/post";
 import { redirect } from 'next/navigation';
+import { get } from "http";
 
 
 
@@ -49,8 +50,19 @@ export default async function FeedPage(
         redirect('/feed?filter=all&sort=hot')
     }
 
-    const response = await getAllPostsByNewset(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
-    const posts: PostForClient[] = response.data ?? [];
+    let posts: PostForClient[] = [];
+
+    // --- Dynamic Post Fetching ---
+    if (sort === 'newest') {
+        const response = await getAllPostsByNewest(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
+        posts = response.data ?? [];
+    } else if (sort === 'oldest') {
+        const response = await getAllPostsByOldest(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
+        posts = response.data ?? [];
+    } else if (sort === 'hot') {
+        const response = await getAllPostsByHot(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
+        posts = response.data ?? [];
+    }
 
 
 
