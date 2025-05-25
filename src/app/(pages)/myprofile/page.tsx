@@ -48,7 +48,7 @@ export default async function Page() {
                                     },
                                     userName: {
                                         fontSize: '1.2em',
-                                        fontWeight: 'bold', 
+                                        fontWeight: 'bold',
                                         color: 'red',
 
                                     },
@@ -81,7 +81,9 @@ export default async function Page() {
             <div id="Right" className=" h-full w-full flex flex-col gap-2 max-w-130">
                 <div id="Title" className="font-bold">My Posts</div>
                 <div id="Post-Container" className="flex flex-col gap-2">
-                    <div className="bg-muted rounded-md min-h-40 flex justify-center items-center"> You havn't made any posts yet </div>
+                    <div className="bg-muted rounded-md min-h-40 flex justify-center items-center">
+                        You havn't made any posts yet
+                    </div>
                 </div>
             </div>
 

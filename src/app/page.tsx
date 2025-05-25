@@ -1,6 +1,5 @@
 'use client'
 // IMPORTS 
-import { Button } from "@/components/ui/button"
 import { OrbitingCircles } from "@/components/magicui/orbiting-circles";
 import { NewspaperIcon, Calendar1, Speech, Tag, Gamepad2, TriangleAlert } from "lucide-react";
 import { Ripple } from "@/components/magicui/ripple";
@@ -8,16 +7,11 @@ import Image from "next/image";
 import { Switch } from "@/components/ui/switch"
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 
 
 // TYPES
-interface LocationState {
-  latitude: number | null;
-  longitude: number | null;
-}
-
 
 
 /// /// ///
@@ -133,14 +127,6 @@ export default function Root() {
         </OrbitingCircles>
 
       </div>
-
-
-
-
-
-
-
-
     </div>
   )
 }
@@ -148,17 +134,3 @@ export default function Root() {
 
 
 
-
-{/* <div>
-<button
-  onClick={getLocation}
-  disabled={isLoading}
-  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
->
-  {isLoading ? 'Getting location...' : 'Get Location'}
-</button>
-
-{coords}
-
-{error && <p className="text-red-500 mt-2">{error}</p>}
-</div> */}

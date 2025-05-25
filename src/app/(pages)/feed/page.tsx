@@ -1,18 +1,16 @@
+'use client'
 
-// IMPORTS 
+import { useEffect, useState } from 'react';
 import Card from "@/components/feed/card";
 import NoPostsFound from "@/components/feed/no-posts-found";
-// ACTIONS
 import { getAllPostsByNewest, getAllPostsByOldest, getAllPostsByHot } from "@/app/actions/post";
-import { redirect } from 'next/navigation';
-import { get } from "http";
-
-
+import { redirect, useRouter, useSearchParams } from 'next/navigation';
+import Loading from "./loading";
 
 interface PostForClient {
     id: string;
-    owner: string; // This will now be the user's full name
-    ownerAvatar: string; // New field for the avatar URL
+    owner: string;
+    ownerAvatar: string;
     timeStamp: number;
     content: string;
     attachment: string | null;
@@ -20,52 +18,87 @@ interface PostForClient {
     hotness: number;
 }
 
+export default function FeedPage() {
+    const [posts, setPosts] = useState<PostForClient[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const filter = searchParams.get('filter') || 'all';
+    const sort = searchParams.get('sort') || 'hot';
 
-
-
-
-
-
-
-
-export default async function FeedPage(
-    { searchParams }: {
-        searchParams: { filter: string, sort: string }
-    }
-) {
-
-    // Get the current filter and sort from the URL
-    const { filter, sort } = await searchParams;
-    console.log("filter", filter)
-    console.log("sort", sort)
-
-    const filters = ['all', 'news', 'discuss', 'events', 'commercial'];
+    const filters = ['all', 'news', 'discuss', 'event', 'commercial'];
     const sorts = ['hot', 'newest', 'oldest'];
-    // redirect user if the filter or sort is not valid
-    if (!filters.includes(filter)) {
-        redirect('/feed?filter=all&sort=hot')
+
+    // Get user location on mount
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                () => {
+                    redirect("/")
+                    // Set default location or handle error
+                }
+            );
+        } else {
+            redirect("/");
+        }
+    }, []);
+
+    // Fetch posts when location or params change
+    useEffect(() => {
+        if (!userLocation) return;
+
+        // Validate params
+        if (!filters.includes(filter) || !sorts.includes(sort)) {
+            router.push('/feed?filter=all&sort=hot');
+            return;
+        }
+
+        const fetchPosts = async () => {
+            setLoading(true);
+            try {
+                let response;
+                if (sort === 'newest') {
+                    response = await getAllPostsByNewest(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat
+                    );
+                } else if (sort === 'oldest') {
+                    response = await getAllPostsByOldest(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat
+                    );
+                } else {
+                    response = await getAllPostsByHot(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat
+                    );
+                }
+                setPosts(response.data ?? []);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+                setPosts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, [userLocation, filter, sort, router]);
+
+    if (loading) {
+        return <Loading />
     }
-    if (!sorts.includes(sort)) {
-        redirect('/feed?filter=all&sort=hot')
-    }
-
-    let posts: PostForClient[] = [];
-
-    // --- Dynamic Post Fetching ---
-    if (sort === 'newest') {
-        const response = await getAllPostsByNewest(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
-        posts = response.data ?? [];
-    } else if (sort === 'oldest') {
-        const response = await getAllPostsByOldest(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
-        posts = response.data ?? [];
-    } else if (sort === 'hot') {
-        const response = await getAllPostsByHot(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
-        posts = response.data ?? [];
-    }
-
-
-
 
     return (
         <>
@@ -78,9 +111,6 @@ export default async function FeedPage(
                     </div>
                 </div>
             }
-
-
         </>
-    )
-
+    );
 }

@@ -77,8 +77,11 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
 // GETTING POSTS
 
 // THIS GETS ALL POSTS BY NEWEST
-export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
+
+    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
+
     try {
         client = await pool.connect();
         // ADD FILTER QUERY LOGIC !!!!!!!!!!
@@ -166,8 +169,12 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
 }
 
 // THIS GETS ALL POSTS BY OLDEST
-export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
+
+    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
+
+
     try {
         client = await pool.connect();
         // ADD FILTER QUERY LOGIC !!!!!!!!!!
@@ -255,8 +262,12 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
 }
 
 // THIS GETS ALL POSTS BY HOTNESS
-export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
+export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
+
+    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
+
+    
     try {
         client = await pool.connect();
         // ADD FILTER QUERY LOGIC !!!!!!!!!!

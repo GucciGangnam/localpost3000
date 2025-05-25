@@ -1,15 +1,7 @@
 //  IMPORTS 
-import { Heart, MessageSquare, Waypoints, Pin, Verified, NewspaperIcon, Speech, Calendar1, Tag, Ellipsis, CircleSlash2 } from "lucide-react"
+import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import CardButtons from "./card-buttons"
 
 interface PostForClient {
     id: string;
@@ -53,7 +45,7 @@ export default function Card({ post }: { post: PostForClient }) {
 
 
     return (
-        <div className={`relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
 
             <div id="left" className="pt-1">
                 <Avatar>
@@ -130,38 +122,10 @@ export default function Card({ post }: { post: PostForClient }) {
                 </div>
 
 
-                <div id="right-bottom" className="relative flex justify-end gap-4">
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="focus:outline-0"><Ellipsis color="var(--input)" /></DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-muted">
-                            <DropdownMenuLabel>More actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="hover:bg-input">Report</DropdownMenuItem>
-                            <DropdownMenuItem className="hover:bg-input">Hide</DropdownMenuItem>
-                            <DropdownMenuItem className="hover:bg-input">Close</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <div id="right-bottom" className="relative flex justify-end gap-2">
 
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-                    <Waypoints
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <MessageSquare
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <Heart
-                        fill="var(--input)"
-                        color="var(--input)"
-                    />
-                    <button className="hover:bg-input rounded-md p-1">
-                        <Pin
-                            fill="var(--input)"
-                            color="var(--input)"
-                        />
-                    </button>
+                    <CardButtons />
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
 
 

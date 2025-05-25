@@ -14,13 +14,6 @@ export default function SorterAndFilter() {
     const currentSort = searchParams.get('sort') || 'hot'; // Default to 'hot'
     const currentFilter = searchParams.get('filter') || 'all'; // Default to 'all'
 
-    // Allowed filters
-    const allowedFilters = ['news', 'discuss', 'events', 'commercial'];
-    // Allowed sorts
-    const allowedSorts = ['hot', 'newest', 'oldest'];
-
-
-
     const removeFilter = (clickedLink: string) => {
 
         console.log(clickedLink)
@@ -79,7 +72,7 @@ export default function SorterAndFilter() {
                     Discuss
                 </a>
                 <a
-                    onClick={() => removeFilter('events')}
+                    onClick={() => removeFilter('event')}
                     className={`cursor-pointer text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'events' ? 'text-orange' : ''}`}>
                     <Calendar1 size={15} color={currentFilter === 'events' ? 'var(--orange)' : undefined} />
                     Events

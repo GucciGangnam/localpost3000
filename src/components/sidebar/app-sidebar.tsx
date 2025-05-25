@@ -1,4 +1,4 @@
-import { Home, LogOut, NewspaperIcon, Speech, Calendar1, Tag, Gamepad2 } from "lucide-react"
+import { Home, LogOut, NewspaperIcon, Speech, Calendar1, Tag, Gamepad2, Pin, Signpost } from "lucide-react"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 
@@ -48,7 +48,7 @@ const items = [
     },
     {
         title: "Events",
-        url: "/feed?filter=events&sort=hot",
+        url: "/feed?filter=event&sort=hot",
         icon: Calendar1,
     },
     {
@@ -60,6 +60,19 @@ const items = [
         title: "Games",
         url: "/games",
         icon: Gamepad2,
+    },
+]
+
+const personalItems = [
+    {
+        title: "My Posts",
+        url: "/myprofile",
+        icon: Signpost,
+    },
+    {
+        title: "Following",
+        url: "/profile/bookmarks",
+        icon: Pin,
     },
 ]
 
@@ -92,6 +105,25 @@ export function AppSidebar() {
                         </div>
                     </SignedOut>
 
+                    <Separator className="mt-2 mb-2" />
+
+                    <SignedIn>
+                        <SidebarGroupContent>
+                            <SidebarGroupLabel>For you</SidebarGroupLabel>
+                            <SidebarMenu className="text-muted-foreground">
+                                {personalItems.map((item) => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <a href={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SignedIn>
                     <Separator className="mt-2 mb-2" />
 
                     <SidebarGroupContent>

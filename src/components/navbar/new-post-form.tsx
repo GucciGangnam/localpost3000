@@ -1,11 +1,9 @@
 
 //IMPORTS 
-import { useEffect } from "react";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
+import { DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
 import { useUser } from "@clerk/nextjs";
-import { Button } from "../ui/button";
 import { Textarea } from "@/components/ui/textarea"
-import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2 } from "lucide-react";
+import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2, MapPin } from "lucide-react";
 import { useState } from "react";
 import {
     Select,
@@ -49,9 +47,7 @@ export default function NewPostForm() {
         }
 
         const location = await getLocation();
-
         if (!location) {
-            alert("Location not found, please enable location services")
             redirect('/');
         }
 
@@ -114,7 +110,12 @@ export default function NewPostForm() {
                                 Post
                             </DialogTrigger>
                         )}
-
+                </div>
+                <div className="absolute bottom-1 right-5 flex items-center gap-1 text-xs text-destructive opacity-50">
+                    Your post will be pinned at this exact location
+                    <MapPin
+                    size={15}
+                    />
                 </div>
             </div>
         </DialogContent>
