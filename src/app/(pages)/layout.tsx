@@ -39,11 +39,11 @@ export default function RootLayout({
                     {/* Sidebar */}
                     <SidebarProvider>
                         <AppSidebar />
-                        <main className='w-full'>
+                        <div className='w-full'>
                             <NavBar />
                             {/* Page */}
                             {children}
-                        </main>
+                        </div>
                     </SidebarProvider>
                 </body>
             </html>

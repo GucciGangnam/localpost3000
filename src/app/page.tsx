@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 
 
 import React, { useState } from 'react';
+import { redirect } from "next/navigation";
 
 
 
@@ -49,9 +50,11 @@ export default function Root() {
         console.log('Longitude:', longitude);
         setHasLocation(true)
 
+
         // You could also store these values in state if needed
         setIsLoading(false);
         console.log("loading finished")
+        redirect('/feed');
       },
 
 
