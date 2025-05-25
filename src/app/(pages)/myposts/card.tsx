@@ -1,47 +1,24 @@
 //  IMPORTS 
-import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
+import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2, MapPinned } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import CardButtons from "./card-buttons"
+import { Button } from "@/components/ui/button";
 
-interface PostForClient {
+
+interface PersonalPostForClient {
     id: string;
-    owner: string; // This will now be the user's full name
-    ownerAvatar: string; // New field for the avatar URL
-    timeStamp: number;
+    owner: string;
+    ownerAvatar: string;
+    created_at: Date;
     content: string;
     attachment: string | null;
     category: string;
     hotness: number;
+    longitude: number;
+    latitude: number;
 }
 
 // COMPONENT
-export default function Card({ post }: { post: PostForClient }) {
-
-    const utcTimeNow = new Date().getTime();
-    const timeDifference = utcTimeNow - post.timeStamp;
-    const timeDifferenceInMinutes = Math.floor(timeDifference / (1000 * 60));
-    let timeAgo = "";
-    if (timeDifferenceInMinutes < 1) {
-        timeAgo = "Just now";
-    } else if (timeDifferenceInMinutes < 60) {
-        timeAgo = `${timeDifferenceInMinutes} minutes ago`;
-    } else if (timeDifferenceInMinutes < 1440) {
-        const timeDifferenceInHours = Math.floor(timeDifferenceInMinutes / 60);
-        timeAgo = `${timeDifferenceInHours} hours ago`;
-    } else if (timeDifferenceInMinutes < 10080) {
-        const timeDifferenceInDays = Math.floor(timeDifferenceInMinutes / 1440);
-        timeAgo = `${timeDifferenceInDays} days ago`;
-    } else if (timeDifferenceInMinutes < 43200) {
-        const timeDifferenceInWeeks = Math.floor(timeDifferenceInMinutes / 10080);
-        timeAgo = `${timeDifferenceInWeeks} weeks ago`;
-    } else if (timeDifferenceInMinutes < 525600) {
-        const timeDifferenceInMonths = Math.floor(timeDifferenceInMinutes / 43200);
-        timeAgo = `${timeDifferenceInMonths} months ago`;
-    } else {
-        const timeDifferenceInYears = Math.floor(timeDifferenceInMinutes / 525600);
-        timeAgo = `${timeDifferenceInYears} years ago`;
-    }
-
+export default function Card({ post }: { post: PersonalPostForClient }) {
 
 
     return (
@@ -102,7 +79,7 @@ export default function Card({ post }: { post: PostForClient }) {
                             }
                         </span>
 
-                        <div id="timestamp" className="text-xs text-muted-foreground">{timeAgo}</div>
+                        <div id="timestamp" className="text-xs text-muted-foreground">Posted on: {post.created_at.toLocaleString()}</div>
                     </div>
                 </div>
                 <div id="right-middle" className=" flex flex-col gap-2 grow">
@@ -122,12 +99,26 @@ export default function Card({ post }: { post: PostForClient }) {
                 </div>
 
 
-                <div id="right-bottom" className="relative flex justify-end gap-2">
+                <div id="right-bottom" className="flex flex-col gap-2">
 
-                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-                    <CardButtons />
-                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
 
+                    <a
+                        className=" text-xs flex items-center justify-center gap-1 py-5 p-2 pl-1 rounded-sm"
+                        href={`https://www.google.com/maps/search/?api=1&query=${post.latitude},${post.longitude}`}
+                        style={{
+                            backgroundImage: `url('/mapDefaultBanner.png')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' // Added box-shadow
+                        }}
+                        target="_blank" // This opens the link in a new tab
+                        rel="noopener noreferrer" // Recommended for security with target="_blank"
+                    >
+                        Click to see where you placed this post
+                    </a>
+
+                    <Button variant={"destructive"} className=" bg-orange opacity-30 hover:opacity-100">Delete</Button>
 
                 </div>
 

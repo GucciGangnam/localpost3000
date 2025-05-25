@@ -66,7 +66,7 @@ const items = [
 const personalItems = [
     {
         title: "My Posts",
-        url: "/myprofile",
+        url: "/myposts",
         icon: Signpost,
     },
     {

@@ -1,7 +1,7 @@
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import CardButtons from "./card-buttons"
+
 
 interface PostForClient {
     id: string;
@@ -124,9 +124,9 @@ export default function Card({ post }: { post: PostForClient }) {
 
                 <div id="right-bottom" className="relative flex justify-end gap-2">
 
-                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-                    <CardButtons />
-                    {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
+                    {/* PERSONAL USER SPESIFIC BUTTONS _ __ _ NEED TO BE PUT IN A CLIENT COMP */}
+
+                    {/* PERSONAL USER SPESIFIC BUTTONS _ __ _ NEED TO BE PUT IN A CLIENT COMP*/}
 
 
                 </div>

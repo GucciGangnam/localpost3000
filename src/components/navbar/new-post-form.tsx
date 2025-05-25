@@ -54,12 +54,14 @@ export default function NewPostForm() {
         const response = await createPost(user.id, newPostContent, newPostTag, location);
         if (response.success) {
             console.log("Post created successfully:", response.data);
+            setNewPostContent(''); // Clear the textarea after submission
+            setNewPostTag('none'); // Reset the tag selection
+            window.location.reload(); // Reload the page to show the new post
         } else {
             console.error("Post creation failed:", response.error);
             alert("There was a connection issue, please try again later")
         }
-        setNewPostContent(''); // Clear the textarea after submission
-        setNewPostTag('none'); // Reset the tag selection
+
 
     }
 

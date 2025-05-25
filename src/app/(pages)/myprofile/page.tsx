@@ -3,8 +3,11 @@ import { CreditCard, KeyRound, GlobeLock } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { getUserInfo } from "../../actions/user";
+import { getPersonalPosts } from "../../actions/post";
+import Card from "@/components/feed/card";
 
 
+// TYPES 
 
 
 
@@ -23,13 +26,18 @@ export default async function Page() {
         console.log("User data not found");
         return <div>User data not found</div>;
     }
-    const { first_name, last_name, bio } = userData.data;
+    const myPosts = await getPersonalPosts(userID);
+    if (!myPosts.success) {
+        console.log("Posts not found");
+        return <div>Posts not found</div>;
+    }
+    const {bio} = userData.data;
 
 
 
 
     return (
-        <div className="p-4 flex justify-center items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 ">
+        <div className="p-4 flex justify-center items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 max-h-screen ">
 
             <div id="Left" className=" w-full flex flex-col gap-8 max-w-130">
 
@@ -78,13 +86,15 @@ export default async function Page() {
             </div>
 
 
-            <div id="Right" className=" h-full w-full flex flex-col gap-2 max-w-130">
+            <div id="Right" className="  max-h-full w-full flex flex-col gap-2 max-w-130">
                 <div id="Title" className="font-bold">My Posts</div>
-                <div id="Post-Container" className="flex flex-col gap-2">
-                    <div className="bg-muted rounded-md min-h-40 flex justify-center items-center">
-                        You havn't made any posts yet
+
+                    <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
+                        {
+
+                        }
                     </div>
-                </div>
+
             </div>
 
 

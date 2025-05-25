@@ -74,7 +74,7 @@ export default function SorterAndFilter() {
                 <a
                     onClick={() => removeFilter('event')}
                     className={`cursor-pointer text-muted-foreground bg-muted hover:bg-input rounded-sm p-1 pr-2 w-fit flex items-center gap-1 ${currentFilter === 'events' ? 'text-orange' : ''}`}>
-                    <Calendar1 size={15} color={currentFilter === 'events' ? 'var(--orange)' : undefined} />
+                    <Calendar1 size={15} color={currentFilter === 'event' ? 'var(--orange)' : undefined} />
                     Events
                 </a>
                 <a

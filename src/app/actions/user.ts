@@ -56,7 +56,7 @@ export const updateUserBio = async (userId: string, bio: string) => {
 
 
 // GET USER 
-// for getting first/last name, bio, posts
+// for getting first/last name, bio, posts 
 export const getUserInfo = async (userId: string) => {
     let client;
     try {

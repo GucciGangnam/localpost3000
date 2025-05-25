@@ -16,6 +16,8 @@ interface DbPost {
     longitude: number;
     latitude: number;
     hotness: number;
+    distance: number;
+
 }
 
 interface PostForClient {
@@ -29,9 +31,22 @@ interface PostForClient {
     hotness: number;
 }
 
+interface PersonalPostForClient {
+    id: string;
+    owner: string; // This will now be the user's full name
+    ownerAvatar: string; // New field for the avatar URL
+    created_at: Date;
+    content: string;
+    attachment: string | null;
+    category: string;
+    hotness: number;
+    longitude: number;
+    latitude: number;
+}
 
 
-// CREATE POST 
+
+// CREATE POST -- THIS HAS A 5 SECOND TIMEOUT BUILT IN CURRENTLY - 
 export const createPost = async (clerkID: string, postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
     latitude: number;
     longitude: number;
@@ -42,6 +57,9 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
 
     console.log("back reached and coords are not null.  heres what server got from client")
     console.log(clerkID, postContent, coordinates)
+
+    // add a simulated delay to mimic real-world scenarios of 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
 
     let client;
@@ -57,7 +75,7 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
         const values = [clerkID, postContent, newPostTag, longitude, latitude, 1];
         const result = await client.query(query, values);
         client.release();
-        revalidatePath('/'); 
+        revalidatePath('/');
         return { success: true, data: result.rows[0] }; // Return success and data
     } catch (error: any) {
         console.error('Database error creating post:', error);
@@ -78,9 +96,13 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
 
 // THIS GETS ALL POSTS BY NEWEST
 export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
+
     let client;
 
-    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
+    // Validate coordinates
+    if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
+        return { success: false, error: 'Invalid coordinates provided' };
+    }
 
     try {
         client = await pool.connect();
@@ -90,20 +112,45 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
         let query: string;
         if (filter === 'all') {
             query = `
-                SELECT * FROM posts
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($1)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts
+                WHERE (6371 * acos(
+                    cos(radians($1)) * cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * sin(radians(latitude))
+                )) <= $3
                 ORDER BY created_at DESC
                 LIMIT 20;
             `;
         } else {
-            // If filter is not 'all', we filter by the specified category
             query = `
-                SELECT * FROM posts WHERE category = $1
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts 
+                WHERE category = $1 
+                    AND (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) <= $4
                 ORDER BY created_at DESC
                 LIMIT 20;
             `;
         }
         // Execute the query with the appropriate filter
-        const values = filter === 'all' ? [] : [filter];
+        const radiusKm = 1; // 1km radius - you can make this configurable
+        const values = filter === 'all'
+            ? [latitude, longitude, radiusKm]
+            : [filter, latitude, longitude, radiusKm];
         const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
@@ -172,8 +219,10 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
 export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
 
-    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
-
+    // Validate coordinates
+    if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
+        return { success: false, error: 'Invalid coordinates provided' };
+    }
 
     try {
         client = await pool.connect();
@@ -183,20 +232,45 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
         let query: string;
         if (filter === 'all') {
             query = `
-                SELECT * FROM posts
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($1)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts
+                WHERE (6371 * acos(
+                    cos(radians($1)) * cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * sin(radians(latitude))
+                )) <= $3
                 ORDER BY created_at ASC
                 LIMIT 20;
             `;
         } else {
-            // If filter is not 'all', we filter by the specified category
             query = `
-                SELECT * FROM posts WHERE category = $1
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts 
+                WHERE category = $1 
+                    AND (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) <= $4
                 ORDER BY created_at ASC
                 LIMIT 20;
             `;
         }
         // Execute the query with the appropriate filter
-        const values = filter === 'all' ? [] : [filter];
+        const radiusKm = 1; // 1km radius - you can make this configurable
+        const values = filter === 'all'
+            ? [latitude, longitude, radiusKm]
+            : [filter, latitude, longitude, radiusKm];
         const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
@@ -265,9 +339,11 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
 export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
 
-    console.log("ser has longitude: ", longitude, " and latitude: ", latitude); // REMOVE ME
+    // Validate coordinates
+    if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
+        return { success: false, error: 'Invalid coordinates provided' };
+    }
 
-    
     try {
         client = await pool.connect();
         // ADD FILTER QUERY LOGIC !!!!!!!!!!
@@ -276,20 +352,45 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
         let query: string;
         if (filter === 'all') {
             query = `
-                SELECT * FROM posts
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($1)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts
+                WHERE (6371 * acos(
+                    cos(radians($1)) * cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * sin(radians(latitude))
+                )) <= $3
                 ORDER BY hotness DESC
                 LIMIT 20;
             `;
         } else {
-            // If filter is not 'all', we filter by the specified category
             query = `
-                SELECT * FROM posts WHERE category = $1
+                SELECT *, 
+                    (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) AS distance
+                FROM posts 
+                WHERE category = $1 
+                    AND (6371 * acos(
+                        cos(radians($2)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * sin(radians(latitude))
+                    )) <= $4
                 ORDER BY hotness DESC
                 LIMIT 20;
             `;
         }
         // Execute the query with the appropriate filter
-        const values = filter === 'all' ? [] : [filter];
+        const radiusKm = 1; // 1km radius - you can make this configurable
+        const values = filter === 'all'
+            ? [latitude, longitude, radiusKm]
+            : [filter, latitude, longitude, radiusKm];
         const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
@@ -354,5 +455,93 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
     }
 }
 
+// GET PERSONAL POSTS (for profile page)
+export const getPersonalPosts = async (clerkID: string) => {
+
+    let client;
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC;
+        `;
+        const values = [clerkID];
+        const result = await client.query(query, values);
+        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
+
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Fetch user details (including avatar) from Clerk
+        const clerk = await clerkClient();
+        const user = await clerk.users.getUser(clerkID);
+
+        // 2. Modify each post to include owner's name and avatar URL
+        const posts: PersonalPostForClient[] = dbPosts.map((post: DbPost) => ({
+            id: post.id,
+            owner: user.fullName || user.username || 'Unknown User', // Use the name from Clerk
+            ownerAvatar: user.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+            created_at: post.created_at,
+            longitude: post.longitude,
+            latitude: post.latitude,
+            content: post.content_text,
+            attachment: post.attachment_url,
+            category: post.category,
+            hotness: post.hotness,
+        }));
+
+        client.release();
+        return { success: true, data: posts };
+
+    } catch (error: any) {
+        console.error('Database error getting personal posts or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get personal posts' };
+    }
+}
 
 
+
+// GET DETAILED PERSONAL POSTS (for profile page)
+export const getDetailedPersonalPosts = async (clerkID: string) => {
+
+    let client;
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC;
+        `;
+        const values = [clerkID];
+        const result = await client.query(query, values);
+        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
+
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Fetch user details (including avatar) from Clerk
+        const clerk = await clerkClient();
+        const user = await clerk.users.getUser(clerkID);
+
+        // 2. Modify each post to include owner's name and avatar URL
+        const posts: PersonalPostForClient[] = dbPosts.map((post: DbPost) => ({
+            id: post.id,
+            owner: user.fullName || user.username || 'Unknown User', // Use the name from Clerk
+            ownerAvatar: user.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+            created_at: post.created_at,
+            content: post.content_text,
+            attachment: post.attachment_url,
+            category: post.category,
+            hotness: post.hotness,
+            longitude: post.longitude,
+            latitude: post.latitude,
+        }));
+
+        client.release();
+        return { success: true, data: posts };
+
+    } catch (error: any) {
+        console.error('Database error getting detailed personal posts or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get detailed personal posts' };
+    }
+
+}
