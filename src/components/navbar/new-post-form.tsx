@@ -27,6 +27,8 @@ type allowedTags = 'none' | 'news' | 'discuss' | 'event' | 'commercial';
 
 export default function NewPostForm() {
 
+
+
     const { user, isLoaded } = useUser();
     const userName = isLoaded ? user?.fullName : "User Name"
     const userImage = isLoaded ? user?.imageUrl : "/default-avatar.png"
@@ -83,7 +85,7 @@ export default function NewPostForm() {
                     <div className="text-sm text-muted-foreground">Just now</div>
                 </div>
                 <div id="Text">
-                    <Textarea maxLength={140} value={newPostContent} onChange={handleChangePostContent} />
+                    <Textarea placeholder="Write your post here" maxLength={140} value={newPostContent} onChange={handleChangePostContent} />
                 </div>
 
                 <Select onValueChange={(value) => setNewPostTag(value as allowedTags)}>
@@ -103,7 +105,7 @@ export default function NewPostForm() {
                     <button className="bg-muted px-4 rounded-sm text-muted-foreground hover:bg-input">Add photo</button>
 
                     {newPostContent.length < 1 ? (
-                        <button onClick={()=> console.log("Nope")} className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
+                        <button className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">
                             Post
                         </button>
                     ) :

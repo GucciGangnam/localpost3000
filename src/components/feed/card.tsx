@@ -75,7 +75,7 @@ export default function Card({ post }: { post: PostForClient }) {
                             {post.category === "none" &&
                                 <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                     <CircleSlash2 color="var(--orange)" size={10} />
-                                    None
+                                    No Tag
                                 </div>
                             }
                             {post.category === "news" &&

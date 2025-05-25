@@ -68,38 +68,54 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
     }
 };
 
+// EDIT POST _ NOT IMPLEMENTED YET
 
-// Find name of owner of post 
+// DELETE POST _ NOT IMPLEMENTED YET
 
 
 
+// GETTING POSTS
 
 // THIS GETS ALL POSTS BY NEWEST
 export const getAllPostsByNewset = async (filter: "all" | 'news' | 'discuss' | 'events' | 'commercial') => {
     let client;
-    console.log("getting all posts by newest sorted by ", filter);
+
+
+
+
 
     try {
         client = await pool.connect();
-        let query = `
-            SELECT * FROM posts
-            ORDER BY created_at DESC
-            LIMIT 20;
-        `;
         // ADD FILTER QUERY LOGIC !!!!!!!!!!
 
-        const result = await client.query(query);
+        // If filter is 'all', we want to get all posts regardless of category
+        let query: string;
+        if (filter === 'all') {
+            query = `
+                SELECT * FROM posts
+                ORDER BY created_at DESC
+                LIMIT 20;
+            `;
+        } else {
+            // If filter is not 'all', we filter by the specified category
+            query = `
+                SELECT * FROM posts WHERE category = $1
+                ORDER BY created_at DESC
+                LIMIT 20;
+            `;
+        }
+        // Execute the query with the appropriate filter
+        const values = filter === 'all' ? [] : [filter];
+        const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
-        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
 
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
         // 1. Collect all unique Clerk user IDs from the fetched posts
         const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
-
         // 2. Fetch user details (including avatar) from Clerk for all unique IDs
         // We'll store them in a Map for quick lookup
         const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
-
         // Use Promise.all to fetch all user details concurrently for efficiency
         await Promise.all(
             uniqueClerkUserIds.map(async (clerkUserId) => {

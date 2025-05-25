@@ -52,8 +52,6 @@ export default async function FeedPage(
     const response = await getAllPostsByNewset(filter as 'all' | 'news' | 'discuss' | 'events' | 'commercial');
     const posts: PostForClient[] = response.data ?? [];
 
-    console.log("posts", posts)
-
 
 
 
