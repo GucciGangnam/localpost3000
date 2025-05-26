@@ -30,39 +30,18 @@ export const createUser = async (firstname: string, lastname: string, userId: st
 };
 
 // UPDATE USER 
-// UPDATE BIO 
-export const updateUserBio = async (userId: string, bio: string) => {
-    let client;
-    try {
-        client = await pool.connect();
-        const query = `
-            UPDATE users
-            SET bio = $1
-            WHERE id = $2
-            RETURNING *;
-        `;
-        const values = [bio, userId];
-        const result = await client.query(query, values);
-        client.release();
-        return { success: true, data: result.rows[0] }; // Return success and data
-    } catch (error: any) {
-        console.error('Database error updating user bio:', error);
-        if (client) {
-            client.release();
-        }
-        return { success: false, error: error.message || 'Failed to update user bio in database' }; // Return failure and error
-    }
-};
+// UPDATE BIO
+
 
 
 // GET USER 
-// for getting first/last name, bio, posts 
+// for getting first/last name, bio, posts
 export const getUserInfo = async (userId: string) => {
     let client;
     try {
         client = await pool.connect();
         const query = `
-            SELECT first_name, last_name, bio FROM users WHERE id = $1;
+            SELECT first_name, last_name, bio, verified FROM users WHERE id = $1;
         `;
         const values = [userId];
         const result = await client.query(query, values);

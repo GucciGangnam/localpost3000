@@ -18,6 +18,10 @@ interface PostForClient {
     hotness: number;
 }
 
+// THIS WHOEL THIGN NEEDS TO BE A SERVER COMPONENT SO IT CAN BE REVALIDATED AFTER A NOW POST IS MADE. 
+// PROBLEM IS, YOU CANT USE GEOLOCATION IN SERVER COMPONENTS.
+// SO TEH SOLUTION IS TO MOVE TEH GEOLOCATOR INTO ITS OWN CLIENT FUNCTION WHICH RETURNS THE LOG AND LAT, THEN CALL IT FROM THIS FUNCTION AS A SERVER COMP?????  WE CAN AWAIT IT.....?
+
 export default function FeedPage() {
     const [posts, setPosts] = useState<PostForClient[]>([]);
     const [loading, setLoading] = useState(true);

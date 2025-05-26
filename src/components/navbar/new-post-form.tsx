@@ -62,6 +62,7 @@ export default function NewPostForm() {
             setNewPostContent(''); // Clear the textarea after submission
             setNewPostTag('none'); // Reset the tag selection
             toast("Post created successfully")
+            window.location.reload(); // Reload the page to see the new post
         } else {
             console.error("Post creation failed:", response.error);
             toast("An error occurred while creating the post. Please try again later.", {

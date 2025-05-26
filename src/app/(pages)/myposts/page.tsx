@@ -1,14 +1,10 @@
 // IMPORTS 
-import { CreditCard, KeyRound, GlobeLock } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { getUserInfo } from "../../actions/user";
 import { redirect } from "next/navigation";
 import { getPersonalPosts } from "@/app/actions/post";
 import Card from "./card"
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { deletePost } from "@/app/actions/post";
 import NewPostDialog from "@/components/navbar/new-post-dialog";
 
 
@@ -43,6 +39,8 @@ export default async function Page() {
 
     const userAvatar = user.imageUrl;
 
+    console.log(myPosts.postCount);
+
 
 
     return (
@@ -51,7 +49,7 @@ export default async function Page() {
             <div id="Info" className="bg-muted rounded-md p-2 flex flex-col items-center gap-4">
 
                 <div id="top" className="font-bold w-full flex gap-4 items-center">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-8 h-8">
                         <AvatarImage src={userAvatar} />
                         <AvatarFallback>
                             {user.firstName?.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
@@ -64,16 +62,16 @@ export default async function Page() {
 
                     <div id="Posts-Made" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
                         <div id="NumberOfPostsMade" className="text-4xl font-bold">
-                            3
+                            {myPosts.postCount?.postsMade}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground ">
                             Posts made
                         </div>
                     </div>
 
                     <div id="Posts-Available" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
                         <div id="NumberOfPostsAvailable" className="text-4xl font-bold">
-                            3
+                        {myPosts.postCount?.postsAvailable}
                         </div>
                         <div className="text-xs text-muted-foreground">
                             Posts available
@@ -97,7 +95,7 @@ export default async function Page() {
                 // Render 'NO posts' if myPosts.data is empty or doesn't exist
                 <div className="bg-muted rounded-md p-4 flex flex-col items-center justify-center gap-4 w-full">
                     You haven't made any posts yet.
-                    <NewPostDialog/>
+                    <NewPostDialog />
                 </div>
             )}
 

@@ -69,6 +69,20 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
     const latitude = coordinates.latitude;
     try {
         client = await pool.connect();
+
+        // Check if the user has available posts
+        const checkQuery = `
+            SELECT available_posts FROM users WHERE id = $1;
+        `;
+        const checkValues = [userId];
+        const checkResult = await client.query(checkQuery, checkValues);
+        const availablePosts = checkResult.rows[0]?.available_posts || 0;
+
+        if (availablePosts <= 0) {
+            client.release();
+            return { success: false, error: "You don't have any available posts left." };
+        }
+
         const query = `
             INSERT INTO posts (user_id, content_text, category, longitude, latitude, hotness)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -76,6 +90,16 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
         `;
         const values = [userId, postContent, newPostTag, longitude, latitude, 1];
         const result = await client.query(query, values);
+
+        // Increment the total_posts column for the user
+        const incrementQuery = `
+            UPDATE users
+            SET total_posts = total_posts + 1, available_posts = available_posts - 1
+            WHERE id = $1;
+        `;
+        const incrementValues = [userId];
+        await client.query(incrementQuery, incrementValues);
+
         client.release();
         revalidatePath('/');
         return { success: true, data: result.rows[0] }; // Return success and data
@@ -529,8 +553,23 @@ export const getPersonalPosts = async () => {
             hotness: post.hotness,
         }));
 
+        const postsMadeQuery = `
+            SELECT total_posts FROM users WHERE id = $1;
+        `;
+        const postsMadeValues = [userId];
+        const postsMadeResult = await client.query(postsMadeQuery, postsMadeValues);
+        const postsMade = postsMadeResult.rows[0]?.total_posts || 0; // Extract the number or default to 0
+
+
+        const postsAvailableQuery = `
+            SELECT available_posts FROM users WHERE id = $1;
+        `;
+        const postsAvailableValues = [userId];
+        const postsAvailableResult = await client.query(postsAvailableQuery, postsAvailableValues);
+        const postsAvailable = postsAvailableResult.rows[0]?.available_posts || 0; // Extract the number or default to 0
+
         client.release();
-        return { success: true, data: posts };
+        return { success: true, data: posts, postCount: { postsMade, postsAvailable } };
 
     } catch (error: any) {
         console.error('Database error getting personal posts or Clerk API error:', error);
