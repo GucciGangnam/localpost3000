@@ -47,7 +47,7 @@ interface PersonalPostForClient {
 
 
 
-// CREATE POST -- THIS HAS A 5 SECOND TIMEOUT BUILT IN CURRENTLY - 
+// // // // // // // // // // // CREATE POST // // // // // // // // // // //
 export const createPost = async (postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
     latitude: number;
     longitude: number;
@@ -63,10 +63,6 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
     if (!userId) {
         return { success: false, error: "Unauthorized: No authenticated user." };
     }
-
-    // add a simulated delay to mimic real-world scenarios of 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
 
     let client;
     const longitude = coordinates.longitude;
@@ -95,10 +91,43 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
 // EDIT POST _ NOT IMPLEMENTED YET
 
 // DELETE POST _ NOT IMPLEMENTED YET
+export const deletePost = async (postId: string) => {
+
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+
+    let client;
+    try {
+        client = await pool.connect();
+        const query = `
+            DELETE FROM posts WHERE id = $1 AND user_id = $2 RETURNING *;
+        `;
+        const values = [postId, userId];
+        const result = await client.query(query, values);
+        client.release();
+
+        if (result.rowCount === 0) {
+            return { success: false, error: 'Post not found or you do not have permission to delete this post.' };
+        }
+
+        revalidatePath('/');
+        return { success: true, data: result.rows[0] }; // Return success and data
+    } catch (error: any) {
+        console.error('Database error deleting post:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to delete post' }; // Return failure and error
+    }
+}
 
 
 
-// GETTING POSTS
+// // // // // // // // // // // GETTING POSTS // // // // // // // // // // //
 
 // THIS GETS ALL POSTS BY NEWEST
 export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {

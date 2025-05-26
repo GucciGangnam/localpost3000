@@ -17,6 +17,8 @@ import {
 import { createPost } from "@/app/actions/post";
 import { redirect } from "next/navigation";
 import { getLocation } from "@/lib/utils"
+import { toast } from "sonner"
+
 
 // TYPES 
 type allowedTags = 'none' | 'news' | 'discuss' | 'event' | 'commercial';
@@ -40,6 +42,7 @@ export default function NewPostForm() {
         setNewPostContent(e.target.value);
     }
     const submitNewPost = async () => {
+        toast("Creating post")
         if (newPostContent.length < 1) {
             return;
         }
@@ -52,18 +55,20 @@ export default function NewPostForm() {
             redirect('/');
         }
 
+
+
         const response = await createPost(newPostContent, newPostTag, location);
         if (response.success) {
-            console.log("Post created successfully:", response.data);
             setNewPostContent(''); // Clear the textarea after submission
             setNewPostTag('none'); // Reset the tag selection
-            window.location.reload(); // Reload the page to show the new post
+            toast("Post created successfully")
         } else {
             console.error("Post creation failed:", response.error);
-            alert("There was a connection issue, please try again later")
+            toast("An error occurred while creating the post. Please try again later.", {
+                description: response.error || "Unknown error"
+            });
+            return;
         }
-
-
     }
 
 

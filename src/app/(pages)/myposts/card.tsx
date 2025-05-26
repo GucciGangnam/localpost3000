@@ -1,7 +1,22 @@
+'use client'
+
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2, MapPinned } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button";
+import { deletePost } from "@/app/actions/post";
+import { toast } from "sonner"
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 interface PersonalPostForClient {
@@ -21,9 +36,30 @@ interface PersonalPostForClient {
 export default function Card({ post }: { post: PersonalPostForClient }) {
 
 
+    const handleDelete = async () => {
+        try {
+            const response = await deletePost(post.id)
+            if (response.success) {
+                toast("Post deleted sucesfully")
+                return;
+            } else {
+                console.error("Failed to delete post:", response.error);
+                toast("An error occurred while deleting the post. Please try again later.", {
+                    description: response.error || "Unknown error"
+                });
+                return;
+            }
+        } catch (error) {
+            console.error("Error deleting post:", error);
+            toast("An error occurred while deleting the post. Please try again later.");
+            return;
+        }
+    }
+
+
+
     return (
         <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
-
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -32,7 +68,6 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                     </AvatarFallback>
                 </Avatar>
             </div>
-
             <div id="right" className="flex flex-col gap-2 grow justify-between">
                 <div id="right-top" className=" flex flex-col gap-2 ">
                     <div id="meta">
@@ -97,11 +132,7 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                         </div>
                     }
                 </div>
-
-
                 <div id="right-bottom" className="flex flex-col gap-2">
-
-
                     <a
                         className=" text-xs flex items-center justify-center gap-1 py-5 p-2 pl-1 rounded-sm"
                         href={`https://www.google.com/maps/search/?api=1&query=${post.latitude},${post.longitude}`}
@@ -117,14 +148,29 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                     >
                         Click to see where you placed this post
                     </a>
-
-                    <Button variant={"destructive"} className=" bg-orange opacity-30 hover:opacity-100">Delete</Button>
-
+                    <AlertDialog>
+                        <AlertDialogTrigger className=" p-1.5 text-primary-foreground rounded-md bg-orange opacity-30 hover:opacity-100">Delete</AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your post
+                                    and all its associated data.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive opacity-50 hover:bg-destructive hover:opacity-100">Continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
-
-
-
             </div>
+
+
+
+
+
 
 
         </div>

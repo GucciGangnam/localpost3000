@@ -5,6 +5,9 @@ import {
   ClerkProvider,
 } from '@clerk/nextjs'
 
+// Toater 
+import { Toaster } from "@/components/ui/sonner"
+
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -29,19 +32,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
 
-// Can i use this space to navigate teh user out of the app if no location?  or is middlewear teh right place?
+  // Can i use this space to navigate teh user out of the app if no location?  or is middlewear teh right place?
 
 
   return (
     <ClerkProvider>
-    <html lang="en">
-      
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <html lang="en">
 
-        {children}
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 
-      </body>
-    </html>
+          {children}
+          <Toaster />
+
+        </body>
+      </html>
     </ClerkProvider>
   )
 }

@@ -7,13 +7,11 @@ import {CirclePlus } from "lucide-react"
 
 // CLERK
 import {
-    ClerkProvider,
     SignInButton,
     SignUpButton,
     SignedIn,
     SignedOut,
-    UserButton,
-    SignOutButton
+
 } from '@clerk/nextjs'
 
 import NewPostForm from "./new-post-form"
@@ -23,13 +21,12 @@ import NewPostForm from "./new-post-form"
 export default function NewPostDialog() {
 
     const { user, isLoaded } = useUser()
-    const userName = isLoaded ? user?.fullName : "User Name"
-    const userImage = isLoaded ? user?.imageUrl : "/default-avatar.png"
+
 
     return (
         <>
             <Dialog>
-                <DialogTrigger className="flex gap-2 items-center">
+                <DialogTrigger className=" cursor-pointer flex gap-2 items-center">
 
                     New Post
                     <CirclePlus size={30} className="animate-pulse" />
