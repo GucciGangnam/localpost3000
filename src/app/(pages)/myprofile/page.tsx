@@ -26,7 +26,7 @@ export default async function Page() {
         console.log("User data not found");
         return <div>User data not found</div>;
     }
-    const myPosts = await getPersonalPosts(userID);
+    const myPosts = await getPersonalPosts();
     if (!myPosts.success) {
         console.log("Posts not found");
         return <div>Posts not found</div>;

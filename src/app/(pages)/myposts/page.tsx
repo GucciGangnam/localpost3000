@@ -31,9 +31,7 @@ export default async function Page() {
     }
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-
-    const userID = user.id;
-    const myPosts = await getPersonalPosts(userID);
+    const myPosts = await getPersonalPosts();
     if (!myPosts.success) {
         console.log("Posts not found");
         return <div>Posts not found</div>;

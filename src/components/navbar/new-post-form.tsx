@@ -1,3 +1,4 @@
+'use client'
 
 //IMPORTS 
 import { DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
@@ -51,7 +52,7 @@ export default function NewPostForm() {
             redirect('/');
         }
 
-        const response = await createPost(user.id, newPostContent, newPostTag, location);
+        const response = await createPost(newPostContent, newPostTag, location);
         if (response.success) {
             console.log("Post created successfully:", response.data);
             setNewPostContent(''); // Clear the textarea after submission

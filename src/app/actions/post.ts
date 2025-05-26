@@ -4,6 +4,7 @@
 import pool from "@/lib/db"
 import { clerkClient } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
+import { auth } from "@clerk/nextjs/server"
 
 // TYPES 
 interface DbPost {
@@ -47,7 +48,7 @@ interface PersonalPostForClient {
 
 
 // CREATE POST -- THIS HAS A 5 SECOND TIMEOUT BUILT IN CURRENTLY - 
-export const createPost = async (clerkID: string, postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
+export const createPost = async (postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
     latitude: number;
     longitude: number;
 } | null) => {
@@ -55,8 +56,13 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
         return { success: false, error: 'Coordinates are required' }; // Return failure if coordinates are not provided
     }
 
-    console.log("back reached and coords are not null.  heres what server got from client")
-    console.log(clerkID, postContent, coordinates)
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
 
     // add a simulated delay to mimic real-world scenarios of 5 seconds
     await new Promise(resolve => setTimeout(resolve, 5000));
@@ -72,7 +78,7 @@ export const createPost = async (clerkID: string, postContent: string, newPostTa
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *;
         `;
-        const values = [clerkID, postContent, newPostTag, longitude, latitude, 1];
+        const values = [userId, postContent, newPostTag, longitude, latitude, 1];
         const result = await client.query(query, values);
         client.release();
         revalidatePath('/');
@@ -456,22 +462,29 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
 }
 
 // GET PERSONAL POSTS (for profile page)
-export const getPersonalPosts = async (clerkID: string) => {
+export const getPersonalPosts = async () => {
 
     let client;
     try {
+        // 1. Get the authenticated user ID on the server
+        const { userId } = await auth();
+
+        // 2. Validate that a user is logged in
+        if (!userId) {
+            return { success: false, error: "Unauthorized: No authenticated user." };
+        }
         client = await pool.connect();
         const query = `
             SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC;
         `;
-        const values = [clerkID];
+        const values = [userId];
         const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
         // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
         // 1. Fetch user details (including avatar) from Clerk
         const clerk = await clerkClient();
-        const user = await clerk.users.getUser(clerkID);
+        const user = await clerk.users.getUser(userId);
 
         // 2. Modify each post to include owner's name and avatar URL
         const posts: PersonalPostForClient[] = dbPosts.map((post: DbPost) => ({
@@ -502,22 +515,29 @@ export const getPersonalPosts = async (clerkID: string) => {
 
 
 // GET DETAILED PERSONAL POSTS (for profile page)
-export const getDetailedPersonalPosts = async (clerkID: string) => {
+export const getDetailedPersonalPosts = async () => {
 
     let client;
     try {
+        // 1. Get the authenticated user ID on the server
+        const { userId } = await auth();
+
+        // 2. Validate that a user is logged in
+        if (!userId) {
+            return { success: false, error: "Unauthorized: No authenticated user." };
+        }
         client = await pool.connect();
         const query = `
             SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC;
         `;
-        const values = [clerkID];
+        const values = [userId];
         const result = await client.query(query, values);
         const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
 
         // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
         // 1. Fetch user details (including avatar) from Clerk
         const clerk = await clerkClient();
-        const user = await clerk.users.getUser(clerkID);
+        const user = await clerk.users.getUser(userId);
 
         // 2. Modify each post to include owner's name and avatar URL
         const posts: PersonalPostForClient[] = dbPosts.map((post: DbPost) => ({
