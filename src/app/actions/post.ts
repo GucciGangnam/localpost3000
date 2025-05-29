@@ -630,7 +630,95 @@ export const getDetailedPersonalPosts = async () => {
 
 }
 
+// GET A USERS PINNED POSTS
+export const getPinnedPosts = async () => {
+    let client;
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT pinned_posts FROM users WHERE id = $1;
+        `;
+        const values = [userId];
+        const result = await client.query(query, values);
 
+        if (result.rowCount === 0) {
+            return { success: false, error: 'User not found or no pinned posts.' };
+        }
+
+        const pinnedPosts: string[] = result.rows[0].pinned_posts || []; // Ensure it's an array
+        if (pinnedPosts.length === 0) {
+            return { success: true, data: [] }; // No pinned posts
+        }
+
+        // Fetch the actual post details for each pinned post
+        const postsQuery = `
+            SELECT * FROM posts WHERE id = ANY($1::uuid[]);
+        `;
+        const postsResult = await client.query(postsQuery, [pinnedPosts]);
+
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Collect all unique Clerk user IDs from the fetched posts
+        const uniqueClerkUserIds = [...new Set(postsResult.rows.map(post => post.user_id))];
+        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
+        // We'll store them in a Map for quick lookup
+        const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
+        // Use Promise.all to fetch all user details concurrently for efficiency
+        await Promise.all(
+            uniqueClerkUserIds.map(async (clerkUserId) => {
+                try {
+                    const clerk = await clerkClient();
+                    const user = await clerk.users.getUser(clerkUserId);
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: user.imageUrl,
+                        fullName: user.fullName, // Clerk provides fullName
+                        username: user.username,  // Clerk provides username
+                    });
+                } catch (error) {
+                    console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
+                    // Fallback in case a user is not found or there's an API error
+                    usersDataMap.set(clerkUserId, {
+                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        fullName: null,
+                        username: null,
+                    });
+                }
+            })
+        );
+        // 3. Modify each post to include owner's name and avatar URL
+        const posts: PostForClient[] = postsResult.rows.map((post: DbPost) => {
+            const userData = usersDataMap.get(post.user_id);
+
+            // Determine the display name (fullName preferred, then username, then generic)
+            const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
+
+            return {
+                id: post.id,
+                owner: ownerDisplayName, // Use the name from Clerk
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                timeStamp: post.created_at.getTime(),
+                content: post.content_text,
+                attachment: post.attachment_url,
+                category: post.category,
+                hotness: post.hotness,
+            };
+        }
+        );
+        client.release();
+        return { success: true, data: posts }; // Return success and posts data
+    } catch (error: any) {
+        console.error('Database error getting pinned posts or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get pinned posts' }; // Return failure and error
+    }
+}
 
 
 
@@ -739,12 +827,12 @@ export const checkPostedPinned = async (postID: string): Promise<boolean> => {
             WHERE id = $1;
         `;
         const values = [userId];
-        
+
         // AWAIT the query result!
         const result = await client.query(query, values);
 
         // Release the client connection as soon as you're done with it
-        client.release(); 
+        client.release();
 
         if (result.rowCount === 0) {
             return false; // User not found or no pinned posts
@@ -752,9 +840,9 @@ export const checkPostedPinned = async (postID: string): Promise<boolean> => {
 
         // Ensure pinned_posts is treated as an array, even if null from DB (though you set DEFAULT '{}')
         const pinnedPosts: string[] = result.rows[0].pinned_posts || [];
-        
+
         // Return true if postID is in the pinned posts array
-        return pinnedPosts.includes(postID); 
+        return pinnedPosts.includes(postID);
     } catch (error: any) {
         console.error('Database error checking pinned post:', error);
         // Ensure client is released even if an error occurs during the query
@@ -860,8 +948,8 @@ export const toggleLikePost = async (postId: string) => {
         // You might also want to revalidate a specific post's page: revalidatePath(`/posts/${postId}`);
 
         console.log(`Post ${postId} ${action} by user ${userId}. New like count: ${postUpdateResult.rows[0].like_count}`);
-        return { 
-            success: true, 
+        return {
+            success: true,
             message: successMessage,
             data: {
                 userLikedPosts: userUpdateResult.rows[0].liked_posts,
@@ -887,7 +975,7 @@ export const checkPostLiked = async (postId: string): Promise<boolean> => {
     const { userId } = await auth();
     if (!userId) {
         // User is not authenticated, so they can't have liked the post
-        return false; 
+        return false;
     }
 
     try {
@@ -898,24 +986,24 @@ export const checkPostLiked = async (postId: string): Promise<boolean> => {
             WHERE id = $1;
         `;
         const values = [userId];
-        
+
         // AWAIT the query result!
         const result = await client.query(query, values);
 
         // Release the client connection as soon as you're done with it
-        client.release(); 
+        client.release();
 
         if (result.rowCount === 0) {
             // User not found in the database, so they haven't liked it
-            return false; 
+            return false;
         }
 
         // Get the liked_posts array. It should be non-null due to DEFAULT '{}'
         // but || [] is good for defensive programming.
         const likedPosts: string[] = result.rows[0].liked_posts || [];
-        
+
         // Return true if postId is in the likedPosts array, false otherwise
-        return likedPosts.includes(postId); 
+        return likedPosts.includes(postId);
     } catch (error: any) {
         console.error('Database error checking liked post:', error);
         // Ensure client is released even if an error occurs during the query
@@ -923,7 +1011,7 @@ export const checkPostLiked = async (postId: string): Promise<boolean> => {
             client.release();
         }
         // In case of any database error, assume the post is not liked
-        return false; 
+        return false;
     }
 };
 

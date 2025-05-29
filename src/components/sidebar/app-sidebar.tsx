@@ -70,8 +70,8 @@ const personalItems = [
         icon: Signpost,
     },
     {
-        title: "Following",
-        url: "/profile/bookmarks",
+        title: "Pin Board",
+        url: "/pinboard",
         icon: Pin,
     },
 ]
