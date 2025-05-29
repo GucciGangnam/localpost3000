@@ -20,7 +20,6 @@ interface DbPost {
     distance: number;
 
 }
-
 interface PostForClient {
     id: string;
     owner: string; // This will now be the user's full name
@@ -31,7 +30,6 @@ interface PostForClient {
     category: string;
     hotness: number;
 }
-
 interface PersonalPostForClient {
     id: string;
     owner: string; // This will now be the user's full name
@@ -47,7 +45,7 @@ interface PersonalPostForClient {
 
 
 
-// // // // // // // // // // // CREATE POST // // // // // // // // // // //
+// CREATE POST
 export const createPost = async (postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
     latitude: number;
     longitude: number;
@@ -112,9 +110,7 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
     }
 };
 
-// EDIT POST _ NOT IMPLEMENTED YET
-
-// DELETE POST _ NOT IMPLEMENTED YET
+// DELETE POST
 export const deletePost = async (postId: string) => {
 
     // 1. Get the authenticated user ID on the server
@@ -137,7 +133,15 @@ export const deletePost = async (postId: string) => {
         if (result.rowCount === 0) {
             return { success: false, error: 'Post not found or you do not have permission to delete this post.' };
         }
-
+        // Decrement the total_posts column for the user
+        const decrementQuery = `
+            UPDATE users
+            SET total_posts = total_posts - 1, available_posts = available_posts + 1
+            WHERE id = $1;
+        `;
+        const decrementValues = [userId];
+        await client.query(decrementQuery, decrementValues);
+        // Revalidate the path to update the cache
         revalidatePath('/');
         return { success: true, data: result.rows[0] }; // Return success and data
     } catch (error: any) {
@@ -149,10 +153,7 @@ export const deletePost = async (postId: string) => {
     }
 }
 
-
-
 // // // // // // // // // // // GETTING POSTS // // // // // // // // // // //
-
 // THIS GETS ALL POSTS BY NEWEST
 export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
 
@@ -273,7 +274,6 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
         return { success: false, error: error.message || 'Failed to get posts' };
     }
 }
-
 // THIS GETS ALL POSTS BY OLDEST
 export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
@@ -393,7 +393,6 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
         return { success: false, error: error.message || 'Failed to get posts' };
     }
 }
-
 // THIS GETS ALL POSTS BY HOTNESS
 export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
     let client;
@@ -513,8 +512,7 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
         return { success: false, error: error.message || 'Failed to get posts' };
     }
 }
-
-// GET PERSONAL POSTS (for profile page)
+// GET PERSONAL POSTS (for other users profile page) -- - - -- DONT THINK THIS IS IN USE
 export const getPersonalPosts = async () => {
 
     let client;
@@ -580,9 +578,7 @@ export const getPersonalPosts = async () => {
     }
 }
 
-
-
-// GET DETAILED PERSONAL POSTS (for profile page)
+// GET DETAILED PERSONAL POSTS (for OWN profile page)
 export const getDetailedPersonalPosts = async () => {
 
     let client;
@@ -633,3 +629,301 @@ export const getDetailedPersonalPosts = async () => {
     }
 
 }
+
+
+
+
+
+
+
+
+// TOGGLE PIN AND UNPIN A POST
+export const togglePinPost = async (postId: string) => {
+    let client;
+
+    // make sure user is authorized 
+    const { userId } = await auth();
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+
+    console.log('server says....');
+    console.log('postId:', postId);
+    console.log('userId:', userId);
+
+    try {
+        client = await pool.connect();
+
+        // 1. Check if the post is currently pinned for the user
+        const checkQuery = `
+            SELECT pinned_posts
+            FROM users
+            WHERE id = $1;
+        `;
+        const checkResult = await client.query(checkQuery, [userId]);
+
+        if (checkResult.rowCount === 0) {
+            // This means the user ID was not found in the database.
+            client.release();
+            return { success: false, error: 'User not found.' };
+        }
+
+        const currentPinnedPosts: string[] = checkResult.rows[0].pinned_posts || []; // Ensure it's an array
+
+        let action: 'pinned' | 'unpinned';
+        let updateQuery: string;
+        let successMessage: string;
+
+        if (currentPinnedPosts.includes(postId)) {
+            // Post is already pinned, so unpin it
+            updateQuery = `
+                UPDATE users
+                SET pinned_posts = array_remove(pinned_posts, $1::uuid)
+                WHERE id = $2
+                RETURNING pinned_posts;
+            `;
+            action = 'unpinned';
+            successMessage = 'Post unpinned from your pin board!';
+        } else {
+            // Post is not pinned, so pin it
+            updateQuery = `
+                UPDATE users
+                SET pinned_posts = array_append(pinned_posts, $1::uuid)
+                WHERE id = $2
+                RETURNING pinned_posts;
+            `;
+            action = 'pinned';
+            successMessage = 'Post pinned to your pin board!';
+        }
+
+        const values = [postId, userId];
+        const updateResult = await client.query(updateQuery, values);
+        client.release();
+
+        // Check if the update actually affected a row (it should if user exists)
+        if (updateResult.rowCount === 0) {
+            // This case should ideally not happen if checkResult.rowCount > 0
+            // unless there's a concurrency issue or user data changed immediately.
+            console.error('Toggle operation affected 0 rows unexpectedly.');
+            return { success: false, error: 'Failed to update pinned posts (no rows affected).' };
+        }
+
+        revalidatePath('/'); // Revalidate paths that display pinned posts
+        console.log(`Post ${postId} ${action} for user ${userId}. New pinned posts:`, updateResult.rows[0].pinned_posts);
+
+        return { success: true, data: updateResult.rows[0], message: successMessage };
+
+    } catch (error: any) {
+        console.error('Database error toggling post pin:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to toggle post pin.' };
+    }
+};
+// Check if user has pinned post and return boolean
+export const checkPostedPinned = async (postID: string): Promise<boolean> => {
+    let client; // Declare client here so it's accessible in catch block
+
+    // Make sure user is authorized
+    const { userId } = await auth();
+    if (!userId) {
+        return false; // User is not authenticated, cannot check pinned status
+    }
+
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT pinned_posts
+            FROM users
+            WHERE id = $1;
+        `;
+        const values = [userId];
+        
+        // AWAIT the query result!
+        const result = await client.query(query, values);
+
+        // Release the client connection as soon as you're done with it
+        client.release(); 
+
+        if (result.rowCount === 0) {
+            return false; // User not found or no pinned posts
+        }
+
+        // Ensure pinned_posts is treated as an array, even if null from DB (though you set DEFAULT '{}')
+        const pinnedPosts: string[] = result.rows[0].pinned_posts || [];
+        
+        // Return true if postID is in the pinned posts array
+        return pinnedPosts.includes(postID); 
+    } catch (error: any) {
+        console.error('Database error checking pinned post:', error);
+        // Ensure client is released even if an error occurs during the query
+        if (client) {
+            client.release();
+        }
+        return false; // Return false in case of an error
+    }
+};
+
+// TOGGLE LIKE AND UNLIKE POST
+export const toggleLikePost = async (postId: string) => {
+    let client; // Declare client here for scope in catch block
+
+    // Make sure user is authorized
+    const { userId } = await auth();
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+
+    try {
+        client = await pool.connect();
+        await client.query('BEGIN'); // Start a transaction
+
+        // 1. Check if the post is currently liked by the user
+        const checkUserLikesQuery = `
+            SELECT liked_posts
+            FROM users
+            WHERE id = $1;
+        `;
+        const userLikesResult = await client.query(checkUserLikesQuery, [userId]);
+
+        if (userLikesResult.rowCount === 0) {
+            await client.query('ROLLBACK'); // User not found, rollback transaction
+            client.release();
+            return { success: false, error: 'User not found.' };
+        }
+
+        const userLikedPosts: string[] = userLikesResult.rows[0].liked_posts || []; // Default to empty array if somehow null (shouldn't be with DEFAULT '{}')
+
+        let userUpdateQuery: string;
+        let postUpdateQuery: string;
+        let action: 'liked' | 'unliked';
+        let successMessage: string;
+
+        if (userLikedPosts.includes(postId)) {
+            // Post is already liked by the user, so unlike it
+            userUpdateQuery = `
+                UPDATE users
+                SET liked_posts = array_remove(liked_posts, $1::uuid)
+                WHERE id = $2
+                RETURNING liked_posts;
+            `;
+            postUpdateQuery = `
+                UPDATE posts
+                SET like_count = GREATEST(0, like_count - 1)
+                WHERE id = $1
+                RETURNING like_count;
+            `;
+            action = 'unliked';
+            successMessage = 'Post unliked successfully!';
+        } else {
+            // Post is not liked by the user, so like it
+            userUpdateQuery = `
+                UPDATE users
+                SET liked_posts = array_append(liked_posts, $1::uuid)
+                WHERE id = $2
+                RETURNING liked_posts;
+            `;
+            postUpdateQuery = `
+                UPDATE posts
+                SET like_count = like_count + 1
+                WHERE id = $1
+                RETURNING like_count;
+            `;
+            action = 'liked';
+            successMessage = 'Post liked successfully!';
+        }
+
+        // 2. Execute user's liked_posts update
+        const userUpdateResult = await client.query(userUpdateQuery, [postId, userId]);
+        if (userUpdateResult.rowCount === 0) {
+            // This case is unlikely if userLikesResult.rowCount was > 0, but good for robustness
+            await client.query('ROLLBACK');
+            client.release();
+            return { success: false, error: 'Failed to update user\'s liked posts.' };
+        }
+
+        // 3. Execute post's like_count update
+        const postUpdateResult = await client.query(postUpdateQuery, [postId]);
+        if (postUpdateResult.rowCount === 0) {
+            // This means the post ID was not found in the posts table
+            await client.query('ROLLBACK'); // Rollback if post not found
+            client.release();
+            return { success: false, error: 'Post not found to update like count.' };
+        }
+
+        await client.query('COMMIT'); // Commit the transaction
+        client.release(); // Release the client connection
+
+        // Revalidate paths that display the post or user's liked status
+        revalidatePath('/'); // For example, if posts are listed on the home page
+        // You might also want to revalidate a specific post's page: revalidatePath(`/posts/${postId}`);
+
+        console.log(`Post ${postId} ${action} by user ${userId}. New like count: ${postUpdateResult.rows[0].like_count}`);
+        return { 
+            success: true, 
+            message: successMessage,
+            data: {
+                userLikedPosts: userUpdateResult.rows[0].liked_posts,
+                likeCount: postUpdateResult.rows[0].like_count,
+                action: action // Useful for frontend to know what happened
+            }
+        };
+
+    } catch (error: any) {
+        console.error('Database error toggling like status:', error);
+        if (client) {
+            await client.query('ROLLBACK'); // Rollback on any error
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to toggle like status.' };
+    }
+};
+// CHECK IF USER LIKED TEH POST
+export const checkPostLiked = async (postId: string): Promise<boolean> => {
+    let client; // Declare client here so it's accessible in catch block
+
+    // Make sure user is authorized
+    const { userId } = await auth();
+    if (!userId) {
+        // User is not authenticated, so they can't have liked the post
+        return false; 
+    }
+
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT liked_posts
+            FROM users
+            WHERE id = $1;
+        `;
+        const values = [userId];
+        
+        // AWAIT the query result!
+        const result = await client.query(query, values);
+
+        // Release the client connection as soon as you're done with it
+        client.release(); 
+
+        if (result.rowCount === 0) {
+            // User not found in the database, so they haven't liked it
+            return false; 
+        }
+
+        // Get the liked_posts array. It should be non-null due to DEFAULT '{}'
+        // but || [] is good for defensive programming.
+        const likedPosts: string[] = result.rows[0].liked_posts || [];
+        
+        // Return true if postId is in the likedPosts array, false otherwise
+        return likedPosts.includes(postId); 
+    } catch (error: any) {
+        console.error('Database error checking liked post:', error);
+        // Ensure client is released even if an error occurs during the query
+        if (client) {
+            client.release();
+        }
+        // In case of any database error, assume the post is not liked
+        return false; 
+    }
+};
+

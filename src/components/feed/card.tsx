@@ -1,3 +1,6 @@
+
+
+'use client'
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -45,8 +48,7 @@ export default function Card({ post }: { post: PostForClient }) {
 
 
     return (
-        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
-
+        <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -55,7 +57,6 @@ export default function Card({ post }: { post: PostForClient }) {
                     </AvatarFallback>
                 </Avatar>
             </div>
-
             <div id="right" className="flex flex-col gap-2 grow justify-between">
                 <div id="right-top" className=" flex flex-col gap-2 ">
                     <div id="meta">
@@ -120,22 +121,12 @@ export default function Card({ post }: { post: PostForClient }) {
                         </div>
                     }
                 </div>
-
-
                 <div id="right-bottom" className="relative flex justify-end gap-2">
-
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-                    <CardButtons />
+                    <CardButtons postID={post.id}/>
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-
-
                 </div>
-
-
-
             </div>
-
-
-        </div>
+        </a>
     )
 }

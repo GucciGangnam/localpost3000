@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { getUserInfo } from "../../actions/user";
 import { getPersonalPosts } from "../../actions/post";
-import Card from "@/components/feed/card";
+
 
 
 // TYPES 
@@ -31,7 +31,7 @@ export default async function Page() {
         console.log("Posts not found");
         return <div>Posts not found</div>;
     }
-    const {bio} = userData.data;
+    const { bio } = userData.data;
 
 
 
@@ -89,11 +89,9 @@ export default async function Page() {
             <div id="Right" className="  max-h-full w-full flex flex-col gap-2 max-w-130">
                 <div id="Title" className="font-bold">My Posts</div>
 
-                    <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
-                        {
-
-                        }
-                    </div>
+                <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
+                    'poop'
+                </div>
 
             </div>
 

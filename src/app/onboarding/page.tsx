@@ -32,7 +32,6 @@ export default async function Page() {
         return <div>User data incomplete at sign up - please make a new account.</div>;
     } else {
         const response = await createUser(firstName, lastName, userID);
-
         if (response.success) {
             console.log("User creation successful:", response.data);
             return redirect("/feed");

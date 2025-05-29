@@ -4,7 +4,7 @@
 import { DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
 import { useUser } from "@clerk/nextjs";
 import { Textarea } from "@/components/ui/textarea"
-import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2, MapPin } from "lucide-react";
+import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2, Info } from "lucide-react";
 import { useState } from "react";
 import {
     Select,
@@ -18,6 +18,11 @@ import { createPost } from "@/app/actions/post";
 import { redirect } from "next/navigation";
 import { getLocation } from "@/lib/utils"
 import { toast } from "sonner"
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 
 // TYPES 
@@ -120,12 +125,17 @@ export default function NewPostForm() {
                             </DialogTrigger>
                         )}
                 </div>
-                <div className="absolute bottom-1 right-5 flex items-center gap-1 text-xs text-destructive opacity-50">
-                    Your post will be pinned at this exact location
-                    <MapPin
-                    size={15}
-                    />
+                <div className="absolute bottom-1 left-1 flex items-center gap-1 text-xs text-destructive opacity-50">
+                    <HoverCard>
+                        <HoverCardTrigger asChild>
+                            <button><Info /></button>
+                        </HoverCardTrigger>
+                        <HoverCardContent>
+                            Your post will be visible to everyone within 1km of this location. Nobody will be able to see your exact location.
+                        </HoverCardContent>
+                    </HoverCard>
                 </div>
+
             </div>
         </DialogContent>
     )
