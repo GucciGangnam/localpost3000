@@ -1,65 +1,53 @@
-'use client'
 
+
+'use client'
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { deletePost } from "@/app/actions/post";
-import { toast } from "sonner"
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-
-
-interface PersonalPostForClient {
+interface PostForClient {
     id: string;
-    owner: string;
-    ownerAvatar: string;
-    created_at: Date;
+    owner: string; // This will now be the user's full name
+    ownerAvatar: string; // New field for the avatar URL
+    timeStamp: number;
     content: string;
     attachment: string | null;
     category: string;
     hotness: number;
-    longitude: number;
-    latitude: number;
 }
 
 // COMPONENT
-export default function Card({ post }: { post: PersonalPostForClient }) {
+export default function PostCard({ post }: { post: PostForClient }) {
 
-
-    const handleDelete = async () => {
-        try {
-            const response = await deletePost(post.id)
-            if (response.success) {
-                toast.success("Post deleted sucesfully")
-                return;
-            } else {
-                console.error("Failed to delete post:", response.error);
-                toast.error("An error occurred while deleting the post. Please try again later.", {
-                    description: response.error || "Unknown error"
-                });
-                return;
-            }
-        } catch (error) {
-            console.error("Error deleting post:", error);
-            toast("An error occurred while deleting the post. Please try again later.");
-            return;
-        }
+    const utcTimeNow = new Date().getTime();
+    const timeDifference = utcTimeNow - post.timeStamp;
+    const timeDifferenceInMinutes = Math.floor(timeDifference / (1000 * 60));
+    let timeAgo = "";
+    if (timeDifferenceInMinutes < 1) {
+        timeAgo = "Just now";
+    } else if (timeDifferenceInMinutes < 60) {
+        timeAgo = `${timeDifferenceInMinutes} minutes ago`;
+    } else if (timeDifferenceInMinutes < 1440) {
+        const timeDifferenceInHours = Math.floor(timeDifferenceInMinutes / 60);
+        timeAgo = `${timeDifferenceInHours} hours ago`;
+    } else if (timeDifferenceInMinutes < 10080) {
+        const timeDifferenceInDays = Math.floor(timeDifferenceInMinutes / 1440);
+        timeAgo = `${timeDifferenceInDays} days ago`;
+    } else if (timeDifferenceInMinutes < 43200) {
+        const timeDifferenceInWeeks = Math.floor(timeDifferenceInMinutes / 10080);
+        timeAgo = `${timeDifferenceInWeeks} weeks ago`;
+    } else if (timeDifferenceInMinutes < 525600) {
+        const timeDifferenceInMonths = Math.floor(timeDifferenceInMinutes / 43200);
+        timeAgo = `${timeDifferenceInMonths} months ago`;
+    } else {
+        const timeDifferenceInYears = Math.floor(timeDifferenceInMinutes / 525600);
+        timeAgo = `${timeDifferenceInYears} years ago`;
     }
 
 
 
     return (
-        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -114,7 +102,7 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                             }
                         </span>
 
-                        <div id="timestamp" className="text-xs text-muted-foreground">Posted on: {post.created_at.toLocaleString()}</div>
+                        <div id="timestamp" className="text-xs text-muted-foreground">{timeAgo}</div>
                     </div>
                 </div>
                 <div id="right-middle" className=" flex flex-col gap-2 grow">
@@ -132,47 +120,9 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                         </div>
                     }
                 </div>
-                <div id="right-bottom" className="flex flex-col gap-2">
-                    <a
-                        className=" text-xs flex items-center justify-center gap-1 py-5 p-2 pl-1 rounded-sm"
-                        href={`https://www.google.com/maps/search/?api=1&query=${post.latitude},${post.longitude}`}
-                        style={{
-                            backgroundImage: `url('/mapDefaultBanner.png')`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' // Added box-shadow
-                        }}
-                        target="_blank" // This opens the link in a new tab
-                        rel="noopener noreferrer" // Recommended for security with target="_blank"
-                    >
-                        Click to see where you placed this post
-                    </a>
-                    <AlertDialog>
-                        <AlertDialogTrigger className=" p-1.5 text-primary-foreground rounded-md bg-orange opacity-30 hover:opacity-100">Delete</AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete your post
-                                    and all its associated data.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-destructive opacity-50 hover:bg-destructive hover:opacity-100">Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                <div id="right-bottom" className="relative flex justify-end gap-2">
                 </div>
             </div>
-
-
-
-
-
-
-
-        </div>
+        </a>
     )
 }

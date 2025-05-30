@@ -1,7 +1,6 @@
 'use client'
 // IMPORTS 
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
-import { useUser } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import {CirclePlus } from "lucide-react"
 
@@ -19,8 +18,6 @@ import NewPostForm from "./new-post-form"
 // COMPONNET
 
 export default function NewPostDialog() {
-
-    const { user, isLoaded } = useUser()
 
 
     return (

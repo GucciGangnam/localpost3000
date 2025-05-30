@@ -720,7 +720,52 @@ export const getPinnedPosts = async () => {
     }
 }
 
-
+// GET A SINGLE POST AND ITS DATA   // // // // // // // // // // // // // // //
+export const getSinglePost = async (postId: string) => {
+    let client;
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT * FROM posts WHERE id = $1;
+        `;
+        const values = [postId];
+        const result = await client.query(query, values);
+        if (result.rowCount === 0) {
+            client.release();
+            return { success: false, error: 'Post not found.' };
+        }
+        const dbPost: DbPost = result.rows[0]; // Type the raw result from your DB
+        // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
+        // 1. Fetch user details (including avatar) from Clerk
+        const clerk = await clerkClient();
+        const user = await clerk.users.getUser(dbPost.user_id);
+        // 2. Modify the post to include owner's name and avatar URL
+        const post: PostForClient = {
+            id: dbPost.id,
+            owner: user.fullName || user.username || 'Unknown User', // Use the name from Clerk
+            ownerAvatar: user.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+            timeStamp: dbPost.created_at.getTime(),
+            content: dbPost.content_text,
+            attachment: dbPost.attachment_url,
+            category: dbPost.category,
+            hotness: dbPost.hotness,
+        };
+        client.release();
+        return { success: true, data: post }; // Return success and post data
+    } catch (error: any) {
+        console.error('Database error getting single post or Clerk API error:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to get single post' }; // Return failure and error
+    }
+};
 
 
 
@@ -810,7 +855,7 @@ export const togglePinPost = async (postId: string) => {
     }
 };
 // Check if user has pinned post and return boolean
-export const checkPostedPinned = async (postID: string): Promise<boolean> => {
+export const checkPostPinned = async (postID: string): Promise<boolean> => {
     let client; // Declare client here so it's accessible in catch block
 
     // Make sure user is authorized

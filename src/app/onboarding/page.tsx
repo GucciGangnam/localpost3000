@@ -1,5 +1,4 @@
 // IMPORTS 
-import { Suspense } from "react";
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { createUser } from "../actions/user";
 import { redirect } from "next/navigation";

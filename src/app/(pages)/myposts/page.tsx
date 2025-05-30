@@ -94,7 +94,7 @@ export default async function Page() {
             ) : (
                 // Render 'NO posts' if myPosts.data is empty or doesn't exist
                 <div className="bg-muted rounded-md p-4 flex flex-col items-center justify-center gap-4 w-full">
-                    You haven't made any posts yet.
+                    <p>You haven&#39;t made any posts yet.</p>
                     <NewPostDialog />
                 </div>
             )}

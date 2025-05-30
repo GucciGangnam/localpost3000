@@ -20,12 +20,10 @@ import UserSpace from "./user-space"
 
 // CLERK
 import {
-    ClerkProvider,
     SignInButton,
     SignUpButton,
     SignedIn,
     SignedOut,
-    UserButton,
     SignOutButton
 } from '@clerk/nextjs'
 

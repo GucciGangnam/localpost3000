@@ -9,7 +9,7 @@ import { useUser } from '@clerk/nextjs';
 
 
 export default function UserSpace() {
-    const { isSignedIn, user, isLoaded } = useUser();
+    const { user } = useUser();
 
     return (
         <a 

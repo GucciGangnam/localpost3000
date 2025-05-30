@@ -26,7 +26,7 @@ export default async function Page() {
     if (!pinnedPosts.success || !pinnedPosts.data || pinnedPosts.data.length === 0) {
         return (
             <div className="p-4 flex justify-center items-center flex-col gap-4 rounded-md">
-                <p>You haven't pinned any posts to your pinboard yet</p>
+                <p>You haven&#39;t pinned any posts to your pinboard yet</p>
                 <Pin/>
                 <a href="/feed" className="bg-input hover:bg-muted text-muted-foreground px-4 py-2 rounded-md transition-colors">
                     Explore some posts

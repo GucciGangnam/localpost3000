@@ -90,7 +90,7 @@ export default async function Page() {
                 <div id="Title" className="font-bold">My Posts</div>
 
                 <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
-                    'poop'
+                    <div>poo&#39;p</div>
                 </div>
 
             </div>

@@ -2,7 +2,7 @@
 // IMPORTS 
 import { Heart, MessageSquare, Waypoints, Pin, Ellipsis } from "lucide-react"
 import { useState, useEffect } from "react";
-import { checkPostedPinned } from "@/app/actions/post";
+import { checkPostPinned } from "@/app/actions/post";
 import { toggleLikePost } from "@/app/actions/post";
 import { checkPostLiked } from "@/app/actions/post";
 
@@ -42,7 +42,7 @@ export default function CardButtons({ postID }: CardButtonsProps) {
     useEffect(() => {
         const fetchPinnedStatus = async () => {
             try {
-                const isPinned = await checkPostedPinned(postID);
+                const isPinned = await checkPostPinned(postID);
                 setPostPinned(isPinned);
             } catch (error) {
                 console.error("Error checking pinned status:", error);
@@ -71,10 +71,10 @@ export default function CardButtons({ postID }: CardButtonsProps) {
         e.stopPropagation();
         console.log("Button clicked");
         console.log("postID value:", postID); // This will now correctly log the string
+        setPostPinned(!postPinned); // Toggle the pinned state
         togglePinPost(postID)
             .then((response) => {
                 if (response.success) {
-                    setPostPinned(!postPinned); // Toggle the pinned state
                     // Use the specific message provided by the backend action
                     toast.success(response.message || "Operation successful!");
                 } else {
@@ -93,11 +93,11 @@ export default function CardButtons({ postID }: CardButtonsProps) {
         e.stopPropagation();
         console.log("Button clicked");
         console.log("postID value:", postID); // This will now correctly log the string
+        setPostLiked(!postLiked); // Toggle the liked state
         toggleLikePost(postID)
             .then((response) => {
                 if (response.success) {
                     // Use the specific message provided by the backend action
-                    setPostLiked(!postLiked); // Toggle the liked state
                     toast.success(response.message || "Operation successful!");
                 } else {
                     console.error("Error toggling like status:", response.error);

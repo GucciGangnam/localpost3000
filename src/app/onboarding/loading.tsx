@@ -1,6 +1,6 @@
 'use client'
 import { OrbitingCircles } from "@/components/magicui/orbiting-circles";
-import { NewspaperIcon, Calendar1, Speech, Tag, Gamepad2, TriangleAlert } from "lucide-react";
+import { NewspaperIcon, Calendar1, Speech, Tag, Gamepad2 } from "lucide-react";
 import { Ripple } from "@/components/magicui/ripple";
 
 
