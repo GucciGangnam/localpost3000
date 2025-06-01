@@ -1,11 +1,99 @@
 // IMPORTS 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Heart } from "lucide-react";
 
 
-export default function PostCommentCard() {
+// TYPES 
+interface CommentForClient {
+    id: string;
+    userId: string;
+    userName: string; // Full name of the user
+    userAvatar: string; // URL of the user's avatar
+    commentText: string;
+    createdAt: string;
+    likeCount: number;
+    // postId: string; // I dont think teh clien tneeds this...?
+}
+
+
+export default function PostCommentCard(comment: CommentForClient) {
+
+
+    // format times //
+
+    const timestamp = new Date(comment.createdAt).getTime(); // Convert createdAt to a timestamp
+
+    const utcTimeNow = new Date().getTime();
+    const timeDifference = utcTimeNow - timestamp
+    const timeDifferenceInMinutes = Math.floor(timeDifference / (1000 * 60));
+    let timeAgo = "";
+    if (timeDifferenceInMinutes < 1) {
+        timeAgo = "Just now";
+    } else if (timeDifferenceInMinutes < 60) {
+        timeAgo = `${timeDifferenceInMinutes} minutes ago`;
+    } else if (timeDifferenceInMinutes < 1440) {
+        const timeDifferenceInHours = Math.floor(timeDifferenceInMinutes / 60);
+        timeAgo = `${timeDifferenceInHours} hours ago`;
+    } else if (timeDifferenceInMinutes < 10080) {
+        const timeDifferenceInDays = Math.floor(timeDifferenceInMinutes / 1440);
+        timeAgo = `${timeDifferenceInDays} days ago`;
+    } else if (timeDifferenceInMinutes < 43200) {
+        const timeDifferenceInWeeks = Math.floor(timeDifferenceInMinutes / 10080);
+        timeAgo = `${timeDifferenceInWeeks} weeks ago`;
+    } else if (timeDifferenceInMinutes < 525600) {
+        const timeDifferenceInMonths = Math.floor(timeDifferenceInMinutes / 43200);
+        timeAgo = `${timeDifferenceInMonths} months ago`;
+    } else {
+        const timeDifferenceInYears = Math.floor(timeDifferenceInMinutes / 525600);
+        timeAgo = `${timeDifferenceInYears} years ago`;
+    }
+
+
+
+
+
+
+
+
+
     return (
-        <div className="p-4">
-            <p className="text-lg font-semibold mb-2">Comments</p>
-            <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+        <div className="p-4 bg-background rounded-md flex gap-2">
+
+            <div id="Left">
+                <Avatar>
+                    <AvatarImage src={comment.userAvatar} />
+                    <AvatarFallback>
+                        {comment.userName.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
+                    </AvatarFallback>
+                </Avatar>
+            </div>
+
+            <div id="Mid" className="flex flex-col gap-2 grow justify-between">
+                <div id="Top" className="flex flex-col gap-1">  
+                    <p className="font-bold">{comment.userName}</p>
+                    <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                </div>
+                <div id="comment">
+                    {comment.commentText}
+                </div>
+            </div>
+
+            <button id="Right" className="outline-1 flex items-center justify-center rounded-md p-2 cursor-pointer">
+                <Heart />
+            </button>
+
+
+
+
         </div>
     );
 }
+
+
+
+{/* 
+            <p>{comment.userName}</p>
+            <p>{comment.commentText}</p>
+            
+            <p>{new Date(comment.createdAt).toLocaleString()}</p>
+            <p>Likes: {comment.likeCount}</p> */}

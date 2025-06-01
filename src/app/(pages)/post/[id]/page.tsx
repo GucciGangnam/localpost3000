@@ -2,8 +2,10 @@
 // IMPORTS 
 
 import PostButtons from "@/components/post/postButtons";
-import {getSinglePost} from "@/app/actions/post";
+import { getSinglePost } from "@/app/actions/post";
 import PostCard from "@/components/post/postCard";
+import { getCommentsForPost } from "@/app/actions/comment";
+import PostCommentCard from "@/components/post/postCommentCard";
 
 interface PageParams {
     id: string;
@@ -11,13 +13,24 @@ interface PageParams {
 
 interface PostForClient {
     id: string;
-    owner: string; 
-    ownerAvatar: string; 
+    owner: string;
+    ownerAvatar: string;
     timeStamp: number;
     content: string;
     attachment: string | null;
     category: string;
     hotness: number;
+}
+
+interface CommentForClient {
+    id: string;
+    userId: string;
+    userName: string; // Full name of the user
+    userAvatar: string; // URL of the user's avatar
+    commentText: string;
+    createdAt: string;
+    likeCount: number;
+    // postId: string; // I dont think teh clien tneeds this...?
 }
 
 export default async function Page({ params }: { params: PageParams }) {
@@ -33,6 +46,12 @@ export default async function Page({ params }: { params: PageParams }) {
     }
 
     // Fetch comments for the post
+    const commentsResponse = await getCommentsForPost(id);
+    if (!commentsResponse.success || !commentsResponse.data) {
+        return <div className="p-4">No comments found</div>;
+    }
+    const comments: CommentForClient[] = commentsResponse.data;
+
 
 
 
@@ -45,10 +64,13 @@ export default async function Page({ params }: { params: PageParams }) {
             </div>
 
             <div className=" p-2 rounded-md flex flex-col">
-            <p className="font-bold mb-2">Comments</p>
-            <div className="bg-muted p-2 rounded-md flex flex-col gap-2">
-                render comments here
-            </div>
+                <p className="font-bold mb-2">Comments</p>
+                <div className="bg-muted p-4 rounded-md flex flex-col gap-2">
+
+                    {comments.map((comment) => (
+                        <PostCommentCard {...comment} key={comment.id} />
+                    ))}
+                </div>
             </div>
         </div>
     );
