@@ -69,7 +69,7 @@ export default function PostCommentCard(comment: CommentForClient) {
             </div>
 
             <div id="Mid" className="flex flex-col gap-2 grow justify-between">
-                <div id="Top" className="flex flex-col gap-1">  
+                <div id="Top" className="flex flex-col">  
                     <p className="font-bold">{comment.userName}</p>
                     <p className="text-xs text-muted-foreground">{timeAgo}</p>
                 </div>
@@ -78,8 +78,12 @@ export default function PostCommentCard(comment: CommentForClient) {
                 </div>
             </div>
 
-            <button id="Right" className="outline-1 flex items-center justify-center rounded-md p-2 cursor-pointer">
-                <Heart />
+            <button 
+                id="Right" 
+                className=" h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer hover:bg-orange group transition duration-200"
+            >
+                <Heart className="group-hover:text-white transition duration-200" />
+                <span className="text-xs text-muted-foreground group-hover:text-white transition duration-200">{comment.likeCount}</span>
             </button>
 
 
@@ -91,9 +95,3 @@ export default function PostCommentCard(comment: CommentForClient) {
 
 
 
-{/* 
-            <p>{comment.userName}</p>
-            <p>{comment.commentText}</p>
-            
-            <p>{new Date(comment.createdAt).toLocaleString()}</p>
-            <p>Likes: {comment.likeCount}</p> */}

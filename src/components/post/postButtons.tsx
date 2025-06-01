@@ -8,7 +8,6 @@ import { checkPostPinned } from "@/app/actions/post"
 import { toggleLikePost } from "@/app/actions/post"
 import { togglePinPost } from "@/app/actions/post"
 import { toast } from "sonner"
-import { use } from "react"
 import { useState, useEffect } from "react"
 
 export default function PostButtons({ id }: { id: string }) {

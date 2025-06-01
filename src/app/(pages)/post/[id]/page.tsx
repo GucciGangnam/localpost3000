@@ -6,6 +6,7 @@ import { getSinglePost } from "@/app/actions/post";
 import PostCard from "@/components/post/postCard";
 import { getCommentsForPost } from "@/app/actions/comment";
 import PostCommentCard from "@/components/post/postCommentCard";
+import PostCommentForm from "@/components/post/postCommentForm";
 
 interface PageParams {
     id: string;
@@ -67,6 +68,7 @@ export default async function Page({ params }: { params: PageParams }) {
                 <p className="font-bold mb-2">Comments</p>
                 <div className="bg-muted p-4 rounded-md flex flex-col gap-2">
 
+                    <PostCommentForm postId={post.id} />
                     {comments.map((comment) => (
                         <PostCommentCard {...comment} key={comment.id} />
                     ))}
