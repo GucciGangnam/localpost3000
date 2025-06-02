@@ -1,6 +1,12 @@
+
+'use client'
 // IMPORTS 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Heart } from "lucide-react";
+import { toggleLikeComment, checkCommentLiked } from "@/app/actions/comment";
+import React from "react";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 
 // TYPES 
@@ -20,9 +26,7 @@ export default function PostCommentCard(comment: CommentForClient) {
 
 
     // format times //
-
     const timestamp = new Date(comment.createdAt).getTime(); // Convert createdAt to a timestamp
-
     const utcTimeNow = new Date().getTime();
     const timeDifference = utcTimeNow - timestamp
     const timeDifferenceInMinutes = Math.floor(timeDifference / (1000 * 60));
@@ -48,6 +52,44 @@ export default function PostCommentCard(comment: CommentForClient) {
         timeAgo = `${timeDifferenceInYears} years ago`;
     }
 
+    // HANDLE TOGGLE LIKE   
+
+    // FIRST CHECK IF COMMENT IS LIKED BY THE USER
+    const [commentLiked, setCommentLiked] = useState(false);
+    useEffect(() => {
+        const checkLikeStatus = async () => {
+            try {
+                const liked = await checkCommentLiked(comment.id);
+                setCommentLiked(liked);
+            } catch (error) {
+                console.error("Error checking like status:", error);
+            }
+        };
+        checkLikeStatus();
+
+    }, [comment.id]);
+
+// HHANDLERS 
+    interface ToggleLikeCommentResponse {
+        success: boolean;
+        error?: string;
+    }
+    interface ToggleLikeEvent extends React.MouseEvent<HTMLButtonElement> { }
+
+    const handleToggleLike = async (e: ToggleLikeEvent): Promise<void> => {
+        e.preventDefault();
+        setCommentLiked(!commentLiked);
+        const response: ToggleLikeCommentResponse = await toggleLikeComment(comment.id);
+        if (response.success) {
+            toast.success("Like toggled successfully!");
+        }
+        else {
+            setCommentLiked(!commentLiked);
+            console.error("Error toggling like:", response.error);
+            toast.error(`Error toggling like: ${response.error}`);
+        }
+    }
+
 
 
 
@@ -69,7 +111,7 @@ export default function PostCommentCard(comment: CommentForClient) {
             </div>
 
             <div id="Mid" className="flex flex-col gap-2 grow justify-between">
-                <div id="Top" className="flex flex-col">  
+                <div id="Top" className="flex flex-col">
                     <p className="font-bold">{comment.userName}</p>
                     <p className="text-xs text-muted-foreground">{timeAgo}</p>
                 </div>
@@ -77,18 +119,18 @@ export default function PostCommentCard(comment: CommentForClient) {
                     {comment.commentText}
                 </div>
             </div>
-
-            <button 
-                id="Right" 
-                className=" h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer hover:bg-orange group transition duration-200"
+            <button
+                onClick={handleToggleLike}
+                id="Right"
+                className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 ${
+                    commentLiked ? "bg-orange opacity-80 text-background" : "hover:bg-orange group"
+                }`}
             >
-                <Heart className="group-hover:text-white transition duration-200" />
-                <span className="text-xs text-muted-foreground group-hover:text-white transition duration-200">{comment.likeCount}</span>
+                <Heart className={`transition duration-200 ${commentLiked ? "text-background" : "group-hover:text-white"}`} />
+                <span className={`text-xs transition duration-200 ${commentLiked ? "text-background" : "text-muted-foreground group-hover:text-white"}`}>
+                    {comment.likeCount}
+                </span>
             </button>
-
-
-
-
         </div>
     );
 }

@@ -1,10 +1,22 @@
-// IMPORTS 
+'use client'
 
+// IMPORTS 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { currentUser } from '@clerk/nextjs/server'
-import { createComment } from "@/app/actions/comment"
+import { useUser } from '@clerk/nextjs';
+import { createComment } from "@/app/actions/comment";
 import { toast } from "sonner"
+import { useState } from "react";
+
+
+
+// CLERK
+import {
+    SignInButton,
+    SignUpButton,
+} from '@clerk/nextjs'
+
+
 
 
 // TYPS 
@@ -13,18 +25,72 @@ interface PostIDFormProps {
 }
 
 // COMPONENT
-export default async function PostCommentForm(postId: PostIDFormProps) {
+export default function PostCommentForm(postId: PostIDFormProps) {
 
-
-    const user = await currentUser();
+const { user } = useUser();
+const [buttonText, setButtonText] = useState('Comment');
 
     if (!user) {
-        return <div className="p-4">You must be logged in to comment.</div>;
+        return <div className="p-4">
+            <div className="flex flex-col gap-1">
+                You need to be logged in to comment on posts.
+                <SignUpButton mode="modal">
+                    <Button className="cursor-pointer">Sign up</Button>
+                </SignUpButton>
+                <SignInButton mode="modal">
+                    <Button className="cursor-pointer">Log in</Button>
+                </SignInButton>
+            </div>
+        </div>;
+    }
+    // Get user data
+    const userAvatarUrl = user.imageUrl || '/default-avatar.png'; // Default avatar if not set
+    const userName = user.fullName || "User Name"; // Default name if not set
+
+    // handlers 
+    interface HandleSubmitCommentEvent extends React.FormEvent<HTMLFormElement> {}
+
+    interface CreateCommentResponse {
+        success: boolean;
+        error?: string;
+    }
+    const handleSubmitComment = (e: HandleSubmitCommentEvent): void => {
+        setButtonText('Posting...');
+        e?.preventDefault();
+
+        const form = document.querySelector('form');
+        if (!form) return;
+
+        const formData = new FormData(form);
+        const commentText = formData.get('commentText') as string;
+
+        // Validate comment text
+        if (!commentText || commentText.trim() === '') {
+            return;
+        }
+
+        toast.success('Posting comment...');
+        // Call the createComment function with postId and commentText
+        createComment(postId.postId, commentText)
+            .then((response: CreateCommentResponse) => {
+                setButtonText('Comment');
+                toast.dismiss(); // Dismiss the "Posting comment..." toast
+                if (response.success) {
+                    toast.success('Comment created successfully!');
+                    form.reset();
+                } else {
+                    toast.error(`Error: ${response.error}`);
+                }
+            })
+            .catch((error: unknown) => {
+                console.error('Error creating comment:', error);
+                toast.error('An error occurred while creating the comment.');
+            });
     }
 
-    // Access the user's avatar URL
-    const userAvatarUrl = user.imageUrl;
-    const userName = user.fullName || user.firstName || "Unknown User";
+
+
+
 
 
 
@@ -33,12 +99,13 @@ export default async function PostCommentForm(postId: PostIDFormProps) {
 
 
     return (
-        <form className="flex bg-background rounded-md p-4 gap-2 w-full">
 
+
+        <form onSubmit={handleSubmitComment} className="flex bg-background rounded-md p-2 gap-2 w-full">
             <Avatar>
                 <AvatarImage src={userAvatarUrl} />
                 <AvatarFallback>
-                    {userName.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
+                    {userName.split(" ").slice(0, 2).map((name: string) => name[0]).join("").toUpperCase()}
                 </AvatarFallback>
             </Avatar>
 
@@ -54,18 +121,19 @@ export default async function PostCommentForm(postId: PostIDFormProps) {
                     required
                     className="mb-2 p-2 rounded-md   focus:outline-none focus:ring-1 focus:ring-orange"
                     placeholder="Write a comment..."
-                    rows={3}
+                    rows={1}
                 />
 
                 <Button
                     type="submit"
                     className="self-end px-4 py-2 bg-orange opacity-80 text-white rounded-md hover:bg-orange hover:opacity-100 transition-colors cursor-pointer">
-                    Comment
+                    {buttonText}
                 </Button>
 
             </div>
 
         </form>
+
     );
 }
 

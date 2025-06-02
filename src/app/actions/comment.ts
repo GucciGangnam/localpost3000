@@ -60,15 +60,137 @@ export const createComment = async (postId: string, commentText: string): Promis
                 success: true
             }
         }
-
-
-
     } catch (error) {
         console.error('Error creating comment:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
         return { success: false, error: errorMessage };
     }
 }
+// Cgeck if comment i salready liekd 
+export const checkCommentLiked = async (commentId: string): Promise<boolean> => {
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        throw new Error("Unauthorized: No authenticated user.");
+    }
+    let client;
+    try {
+        client = await pool.connect();
+        // Check if the comment exists
+        const checkQuery = `
+            SELECT id, like_count, user_id
+            FROM comments
+            WHERE id = $1;
+        `;
+        const checkValues = [commentId];
+        const checkResult = await client.query<DBComment>(checkQuery, checkValues);
+        const comment = checkResult.rows[0];
+        if (!comment) {
+            throw new Error("Comment not found.");
+        }
+        // Check if the user has already liked this comment
+        const userQuery = `
+            SELECT liked_comments
+            FROM users
+            WHERE id = $1;
+        `;
+        const userValues = [userId];
+        const userResult = await client.query<{ liked_comments: string[] }>(userQuery, userValues);
+        const user = userResult.rows[0];
+        if (!user) {
+            throw new Error("User not found.");
+        }
+        // Check if the comment ID is in the user's liked_comments array
+        const likedComments = user.liked_comments || [];
+        return likedComments.includes(commentId);
+    } catch (error) {
+        console.error('Error checking if comment is liked:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        throw new Error(errorMessage);
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+// Toggle like a comment // get the authenticated user ID on the server, use that id to find the 'user'.  then find that users 'liked_comments' array.  if the comment ID is include din that array, remove it and decrement that comments 'like_count' otherise add it and incremwnt 
+export const toggleLikeComment = async (commentId: string): Promise<{ success: boolean, error?: string }> => {
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+    let client;
+    try {
+        client = await pool.connect();
+        // Check if the comment exists
+        const checkQuery = `
+            SELECT id, like_count, user_id
+            FROM comments
+            WHERE id = $1;
+        `;
+        const checkValues = [commentId];
+        const checkResult = await client.query<DBComment>(checkQuery, checkValues);
+        const comment = checkResult.rows[0];
+        if (!comment) {
+            return { success: false, error: "Comment not found." };
+        }
+        // Check if the user has already liked this comment
+        const userQuery = `
+            SELECT liked_comments
+            FROM users
+            WHERE id = $1;
+        `;
+        const userValues = [userId];
+        const userResult = await client.query<{ liked_comments: string[] }>(userQuery, userValues);
+        const user = userResult.rows[0];
+        if (!user) {
+            return { success: false, error: "User not found." };
+        }
+        // Toggle like status
+        let newLikeCount = comment.like_count;
+        let likedComments = user.liked_comments || [];
+        if (likedComments.includes(commentId)) {
+            // User has already liked this comment, so remove the like
+            likedComments = likedComments.filter(id => id !== commentId);
+            newLikeCount -= 1;
+        } else {
+            // User has not liked this comment, so add the like
+            likedComments.push(commentId);
+            newLikeCount += 1;
+        }
+        // Update the comment's like count and user's liked comments
+        const updateCommentQuery = `
+            UPDATE comments
+            SET like_count = $1
+            WHERE id = $2;
+        `;
+        const updateCommentValues = [newLikeCount, commentId];
+        await client.query(updateCommentQuery, updateCommentValues);
+        const updateUserQuery = `
+            UPDATE users
+            SET liked_comments = $1
+            WHERE id = $2;
+        `;
+        const updateUserValues = [likedComments, userId];
+        await client.query(updateUserQuery, updateUserValues);
+        // Revalidate the path to ensure the latest data is fetched
+        revalidatePath(`/post/${comment.post_id}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error toggling like on comment:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        return { success: false, error: errorMessage };
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};
+
+
 
 // READ 
 // get all comments for one post 

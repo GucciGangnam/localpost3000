@@ -47,7 +47,7 @@ export default function PostCard({ post }: { post: PostForClient }) {
 
 
     return (
-        <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -123,6 +123,6 @@ export default function PostCard({ post }: { post: PostForClient }) {
                 <div id="right-bottom" className="relative flex justify-end gap-2">
                 </div>
             </div>
-        </a>
+        </div>
     )
 }

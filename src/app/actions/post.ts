@@ -128,6 +128,12 @@ export const deletePost = async (postId: string) => {
         `;
         const values = [postId, userId];
         const result = await client.query(query, values);
+        // delete all commenst wjhere teh post_id is the postId
+        const deleteCommentsQuery = `
+            DELETE FROM comments WHERE post_id = $1;
+        `;
+        await client.query(deleteCommentsQuery, [postId]);
+        // Release the client after the query
         client.release();
 
         if (result.rowCount === 0) {
@@ -723,12 +729,7 @@ export const getPinnedPosts = async () => {
 // GET A SINGLE POST AND ITS DATA   // // // // // // // // // // // // // // //
 export const getSinglePost = async (postId: string) => {
     let client;
-    // 1. Get the authenticated user ID on the server
-    const { userId } = await auth();
-    // 2. Validate that a user is logged in
-    if (!userId) {
-        return { success: false, error: "Unauthorized: No authenticated user." };
-    }
+
     try {
         client = await pool.connect();
         const query = `
