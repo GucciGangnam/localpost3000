@@ -190,8 +190,6 @@ export const toggleLikeComment = async (commentId: string): Promise<{ success: b
     }
 };
 
-
-
 // READ 
 // get all comments for one post 
 export const getCommentsForPost = async (postId: string): Promise<{ success: boolean, data?: CommentForClient[], error?: string }> => {
@@ -260,6 +258,46 @@ export const getCommentsForPost = async (postId: string): Promise<{ success: boo
     }
 };
 
-// UPDATE
+// UPDATE - dont think well be needing this 
 
 // DELETE
+export const deleteComment = async (commentId: string): Promise<{ success: boolean, error?: string }> => {
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+    let client;
+    try {
+        client = await pool.connect();
+        // Check if the comment exists and belongs to the user
+        const checkQuery = `
+            SELECT id, user_id
+            FROM comments
+            WHERE id = $1 AND user_id = $2;
+        `;
+        const checkValues = [commentId, userId];
+        const checkResult = await client.query<DBComment>(checkQuery, checkValues);
+        const comment = checkResult.rows[0];
+        if (!comment) {
+            return { success: false, error: "Comment not found or does not belong to the user." };
+        }
+        // Delete the comment
+        const deleteQuery = `
+            DELETE FROM comments
+            WHERE id = $1;
+        `;
+        await client.query(deleteQuery, [commentId]);
+        revalidatePath(`/post/${comment.post_id}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        return { success: false, error: errorMessage };
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+}

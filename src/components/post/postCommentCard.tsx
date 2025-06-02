@@ -2,11 +2,24 @@
 'use client'
 // IMPORTS 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart } from "lucide-react";
-import { toggleLikeComment, checkCommentLiked } from "@/app/actions/comment";
+import { Heart, CircleX } from "lucide-react";
+import { toggleLikeComment, checkCommentLiked, deleteComment } from "@/app/actions/comment";
 import React from "react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { useUser } from '@clerk/nextjs';
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 // TYPES 
@@ -23,6 +36,8 @@ interface CommentForClient {
 
 
 export default function PostCommentCard(comment: CommentForClient) {
+
+    const { user } = useUser();
 
 
     // format times //
@@ -69,13 +84,12 @@ export default function PostCommentCard(comment: CommentForClient) {
 
     }, [comment.id]);
 
-// HHANDLERS 
+    // HHANDLERS 
     interface ToggleLikeCommentResponse {
         success: boolean;
         error?: string;
     }
     interface ToggleLikeEvent extends React.MouseEvent<HTMLButtonElement> { }
-
     const handleToggleLike = async (e: ToggleLikeEvent): Promise<void> => {
         e.preventDefault();
         setCommentLiked(!commentLiked);
@@ -88,6 +102,26 @@ export default function PostCommentCard(comment: CommentForClient) {
             console.error("Error toggling like:", response.error);
             toast.error(`Error toggling like: ${response.error}`);
         }
+    }
+
+    const handleDeleteComment = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
+
+        e.preventDefault();
+        toast("Deleting comment...");
+        try {
+            const response = await deleteComment(comment.id);
+            if (response.success) {
+                toast.dismiss();
+                toast.success("Comment deleted successfully!");
+            } else {
+                console.error("Failed to delete comment:", response.error);
+                toast.error(`Error deleting comment: ${response.error}`);
+            }
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            toast.error("An error occurred while deleting the comment.");
+        }
+
     }
 
 
@@ -119,18 +153,54 @@ export default function PostCommentCard(comment: CommentForClient) {
                     {comment.commentText}
                 </div>
             </div>
-            <button
-                onClick={handleToggleLike}
-                id="Right"
-                className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 ${
-                    commentLiked ? "bg-orange opacity-80 text-background" : "hover:bg-orange group"
-                }`}
-            >
-                <Heart className={`transition duration-200 ${commentLiked ? "text-background" : "group-hover:text-white"}`} />
-                <span className={`text-xs transition duration-200 ${commentLiked ? "text-background" : "text-muted-foreground group-hover:text-white"}`}>
-                    {comment.likeCount}
-                </span>
-            </button>
+
+
+
+            <div className="flex flex-col justify-between items-center">
+
+                <button
+                    onClick={handleToggleLike}
+                    id="Right"
+                    className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 ${commentLiked ? "bg-orange opacity-80 hover:opacity-100 text-background" : "hover:bg-orange group"
+                        }`}
+                >
+                    <Heart className={`transition duration-200 ${commentLiked ? "text-background" : "group-hover:text-white"}`} />
+                    <span className={`text-xs transition duration-200 ${commentLiked ? "text-background" : "text-muted-foreground group-hover:text-white"}`}>
+                        {comment.likeCount}
+                    </span>
+                </button>
+
+                {user?.id === comment.userId &&
+                    // <button
+                    //     id="Right"
+                    //     className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 hover:text-background hover:bg-destructive opacity-50`}>
+                    //     <CircleX className={`transition duration-200 `} />
+                    // </button>
+
+                    <AlertDialog>
+                        <AlertDialogTrigger className="p-2 hover:bg-destructive hover:opacity-50 hover:text-background  rounded-md cursor-pointer "><CircleX className={`transition duration-200 `} /></AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure you want to delete this comment?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action can not be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteComment} className=" cursor-pointer bg-destructive opacity-50 hover:bg-destructive hover:opacity-100">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
+                }
+
+            </div>
+
+
+
+
+
         </div>
     );
 }
