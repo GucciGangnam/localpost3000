@@ -6,18 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { deletePost } from "@/app/actions/post";
 import { toast } from "sonner"
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-
 
 interface PersonalPostForClient {
     id: string;
@@ -36,7 +24,8 @@ interface PersonalPostForClient {
 export default function Card({ post }: { post: PersonalPostForClient }) {
 
 
-    const handleDelete = async () => {
+    const handleDelete = async (e: any) => {
+        e.preventDefault();
         try {
             const response = await deletePost(post.id)
             if (response.success) {
@@ -59,7 +48,8 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
 
 
     return (
-        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <div
+            className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -148,30 +138,13 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                     >
                         Click to see where you placed this post
                     </a>
-                    <AlertDialog>
-                        <AlertDialogTrigger className=" p-1.5 text-primary-foreground rounded-md bg-orange opacity-30 hover:opacity-100">Delete</AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete your post
-                                    and all its associated data.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-destructive opacity-50 hover:bg-destructive hover:opacity-100">Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <a 
+                    href={`/post/${post.id}`}
+                    className=" rounded-md px-2 py-1 text-center text-background bg-orange opacity-50 hover:opacity-100 hover:bg-orange cursor-pointer">
+                        Go to post
+                    </a>
                 </div>
             </div>
-
-
-
-
-
-
 
         </div>
     )
