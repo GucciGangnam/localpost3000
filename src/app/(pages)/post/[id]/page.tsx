@@ -8,8 +8,9 @@ import PostCard from "@/components/post/postCard";
 import { getCommentsForPost } from "@/app/actions/comment";
 import PostCommentCard from "@/components/post/postCommentCard";
 import PostCommentForm from "@/components/post/postCommentForm";
+import PostUpdateForm from "@/components/post/postUpdateForm";
 import { auth } from '@clerk/nextjs/server';
-import {MapPinned} from "lucide-react"
+import { MapPinned } from "lucide-react"
 
 interface PageParams {
     id: string;
@@ -67,16 +68,19 @@ export default async function Page({ params }: { params: PageParams }) {
     return (
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 w-full'>
             {/* LEFT */}
-            <div className="p-2">
+            <div className="p-2 flex flex-col">
                 <p className="font-bold mb-2">Post</p>
                 {isOwner && <a href="/myposts"
-                className="text-sm text-muted-foreground flex items-center gap-2 hover:underline"
-                > 
-                <MapPinned size={15}/>
-                Go to my posts to see the location of this post
+                    className="text-sm text-muted-foreground flex items-center gap-2 hover:underline"
+                >
+                    <MapPinned size={15} />
+                    Go to my posts to see the location of this post
                 </a>}
-                {isOwner ? <OwnerPostButtons id={id} />: <PostButtons id={id} />}
+                {isOwner ? <OwnerPostButtons id={id} /> : <PostButtons id={id} />}
                 <PostCard post={post} />
+                {isOwner && <PostUpdateForm postId={id} />}
+                <br />
+                Render updates here
             </div>
 
 
