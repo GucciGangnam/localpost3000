@@ -15,9 +15,9 @@ export default function PostButtons({ id }: { id: string }) {
     // Post liked?
     const [postLiked, setPostLiked] = useState(false);
     // Post Pinned?
-    const [postPinned, setPostPinned] = useState(false);    
+    const [postPinned, setPostPinned] = useState(false);
 
-useEffect(() => {
+    useEffect(() => {
         const fetchLikedStatus = async () => {
             try {
                 const isLiked = await checkPostLiked(id);
@@ -29,7 +29,7 @@ useEffect(() => {
         fetchLikedStatus();
     }, [id]);
 
-useEffect(() => {
+    useEffect(() => {
         const fetchPinnedStatus = async () => {
             try {
                 const isPinned = await checkPostPinned(id);
@@ -39,7 +39,7 @@ useEffect(() => {
             }
         };
         fetchPinnedStatus();
-    }, [id]);   
+    }, [id]);
 
 
     return (
@@ -52,13 +52,19 @@ useEffect(() => {
             </button>
 
 
-            <button 
-                className={`cursor-pointer text-background flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange transition-colors w-full ${postLiked ? 'bg-orange text-background' : 'bg-muted text-muted-foreground'}`} 
+            <button
+                className={`cursor-pointer text-background flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange transition-colors w-full ${postLiked ? 'bg-orange text-background' : 'bg-muted text-muted-foreground'}`}
                 onClick={async () => {
                     setPostLiked(!postLiked);
                     try {
-                        await toggleLikePost(id);
-                        toast.success(postLiked ? "Post unliked" : "Post liked");
+                        const result = await toggleLikePost(id);
+                        if (!result.success) {
+                            setPostLiked(postLiked);
+                            toast.error('You must be logged in to like a post')
+                            return
+                        } else {
+                            return;
+                        }
                     } catch (error) {
                         setPostLiked(!postLiked);
                         console.error("Error toggling like:", error);
@@ -69,13 +75,18 @@ useEffect(() => {
                 <Heart size={20} />
             </button>
 
-            <button 
-                className={`cursor-pointer text-background flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange transition-colors w-full ${postPinned ? 'bg-orange text-background' : 'bg-muted text-muted-foreground'}`} 
+            <button
+                className={`cursor-pointer text-background flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange transition-colors w-full ${postPinned ? 'bg-orange text-background' : 'bg-muted text-muted-foreground'}`}
                 onClick={async () => {
                     setPostPinned(!postPinned);
                     try {
-                        await togglePinPost(id);
-                        toast.success(postPinned ? "Post unpinned" : "Post pinned");
+                        const result = await togglePinPost(id);
+                        if (!result.success) {
+                            setPostPinned(postPinned);
+                            toast.error("You must be logged into pin a post")
+                        } else {
+                            toast.success(postPinned ? "Post unpinned" : "Post pinned");
+                        }
                     } catch (error) {
                         setPostPinned(!postPinned);
                         console.error("Error toggling pin:", error);

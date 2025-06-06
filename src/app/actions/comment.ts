@@ -72,7 +72,7 @@ export const checkCommentLiked = async (commentId: string): Promise<boolean> => 
     const { userId } = await auth();
     // 2. Validate that a user is logged in
     if (!userId) {
-        throw new Error("Unauthorized: No authenticated user.");
+        return false; 
     }
     let client;
     try {
@@ -120,7 +120,7 @@ export const toggleLikeComment = async (commentId: string): Promise<{ success: b
     const { userId } = await auth();
     // 2. Validate that a user is logged in
     if (!userId) {
-        return { success: false, error: "Unauthorized: No authenticated user." };
+        return { success: false, error: "You must be logged in to like a comment" };
     }
     let client;
     try {

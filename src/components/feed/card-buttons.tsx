@@ -75,10 +75,9 @@ export default function CardButtons({ postID }: CardButtonsProps) {
         togglePinPost(postID)
             .then((response) => {
                 if (response.success) {
-                    // Use the specific message provided by the backend action
-                    toast.success(response.message || "Operation successful!");
+                    return;
                 } else {
-                    console.error("Error toggling pin status:", response.error);
+                    setPostPinned(postPinned)
                     toast.error(response.error || "Failed to toggle pin status.");
                 }
             })
@@ -97,10 +96,9 @@ export default function CardButtons({ postID }: CardButtonsProps) {
         toggleLikePost(postID)
             .then((response) => {
                 if (response.success) {
-                    // Use the specific message provided by the backend action
-                    toast.success(response.message || "Operation successful!");
+                    return;
                 } else {
-                    console.error("Error toggling like status:", response.error);
+                    setPostLiked(postLiked)
                     toast.error(response.error || "Failed to toggle like status.");
                 }
             })

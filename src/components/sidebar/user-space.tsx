@@ -1,6 +1,7 @@
 'use client'
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
+import { useSidebar } from "@/components/ui/sidebar"
 
 
 // Menu items.
@@ -10,6 +11,7 @@ import { useUser } from '@clerk/nextjs';
 
 export default function UserSpace() {
     const { user } = useUser();
+    const {open} = useSidebar()
 
     return (
         <a 
@@ -28,7 +30,8 @@ export default function UserSpace() {
                     className="rounded-full"
                     style={{ aspectRatio: "1/1", borderRadius: '100%' }}
                 />
-                <div>{user?.fullName || "User Name"}</div>
+                {open && <div>{user?.fullName || "User Name"}</div> }
+                
             </div>
 
 

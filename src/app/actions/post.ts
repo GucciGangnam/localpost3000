@@ -22,6 +22,7 @@ interface DbPost {
 }
 interface PostForClient {
     id: string;
+    ownerId?: string;
     owner: string; // This will now be the user's full name
     ownerAvatar: string; // New field for the avatar URL
     timeStamp: number;
@@ -749,6 +750,7 @@ export const getSinglePost = async (postId: string) => {
         // 2. Modify the post to include owner's name and avatar URL
         const post: PostForClient = {
             id: dbPost.id,
+            ownerId: dbPost.user_id,
             owner: user.fullName || user.username || 'Unknown User', // Use the name from Clerk
             ownerAvatar: user.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
             timeStamp: dbPost.created_at.getTime(),
@@ -778,12 +780,8 @@ export const togglePinPost = async (postId: string) => {
     // make sure user is authorized 
     const { userId } = await auth();
     if (!userId) {
-        return { success: false, error: "Unauthorized: No authenticated user." };
+        return { success: false, error: "You must be logged in to pin a post" };
     }
-
-    console.log('server says....');
-    console.log('postId:', postId);
-    console.log('userId:', userId);
 
     try {
         client = await pool.connect();
@@ -906,7 +904,7 @@ export const toggleLikePost = async (postId: string) => {
     // Make sure user is authorized
     const { userId } = await auth();
     if (!userId) {
-        return { success: false, error: "Unauthorized: No authenticated user." };
+        return { success: false, error: "You must be logged in to like a post" };
     }
 
     try {

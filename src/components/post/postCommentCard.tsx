@@ -95,17 +95,15 @@ export default function PostCommentCard(comment: CommentForClient) {
         setCommentLiked(!commentLiked);
         const response: ToggleLikeCommentResponse = await toggleLikeComment(comment.id);
         if (response.success) {
-            toast.success("Like toggled successfully!");
+            return;
         }
         else {
-            setCommentLiked(!commentLiked);
-            console.error("Error toggling like:", response.error);
-            toast.error(`Error toggling like: ${response.error}`);
+            setCommentLiked(commentLiked);
+            toast.error(response.error);
         }
     }
 
     const handleDeleteComment = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
-
         e.preventDefault();
         toast("Deleting comment...");
         try {
@@ -171,11 +169,6 @@ export default function PostCommentCard(comment: CommentForClient) {
                 </button>
 
                 {user?.id === comment.userId &&
-                    // <button
-                    //     id="Right"
-                    //     className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 hover:text-background hover:bg-destructive opacity-50`}>
-                    //     <CircleX className={`transition duration-200 `} />
-                    // </button>
 
                     <AlertDialog>
                         <AlertDialogTrigger className="p-2 hover:bg-destructive hover:opacity-50 hover:text-background  rounded-md cursor-pointer "><CircleX className={`transition duration-200 `} /></AlertDialogTrigger>
