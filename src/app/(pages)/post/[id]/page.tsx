@@ -67,9 +67,6 @@ export default async function Page({ params }: { params: PageParams }) {
     const comments: CommentForClient[] = commentsResponse.data;
     // Fetch the updates forthe post if any 
     const updateResponse = await getPostUpdates(id);
-    if (!updateResponse.success || !updateResponse.data) {
-        return <div className="p-4">error retreiving updates from db</div>;
-    }
     const updates = updateResponse.data;
 
 
@@ -89,7 +86,7 @@ export default async function Page({ params }: { params: PageParams }) {
                 {isOwner ? <OwnerPostButtons id={id} /> : <PostButtons id={id} />}
                 <PostCard post={post} />
 
-                {updates.map((update) => (
+                {updates?.map((update) => (
                 <PostUpdateCard key={update.id} update={update} post={post} />
             ))}
                 {isOwner && <PostUpdateForm postId={id} />}
