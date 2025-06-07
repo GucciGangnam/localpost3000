@@ -9,8 +9,11 @@ import { getCommentsForPost } from "@/app/actions/comment";
 import PostCommentCard from "@/components/post/postCommentCard";
 import PostCommentForm from "@/components/post/postCommentForm";
 import PostUpdateForm from "@/components/post/postUpdateForm";
+import PostUpdateCard from "@/components/post/postUpdateCard";
 import { auth } from '@clerk/nextjs/server';
 import { MapPinned } from "lucide-react"
+import { getPostUpdates } from "@/app/actions/update";
+
 
 interface PageParams {
     id: string;
@@ -39,6 +42,7 @@ interface CommentForClient {
     // postId: string; // I dont think teh clien tneeds this...?
 }
 
+
 export default async function Page({ params }: { params: PageParams }) {
     const { userId } = await auth();
     const { id } = await params; // Get the id from the params object
@@ -58,9 +62,15 @@ export default async function Page({ params }: { params: PageParams }) {
     // Fetch comments for the post
     const commentsResponse = await getCommentsForPost(id);
     if (!commentsResponse.success || !commentsResponse.data) {
-        return <div className="p-4">No comments found</div>;
+        return <div className="p-4">error retreivign comments from db</div>;
     }
     const comments: CommentForClient[] = commentsResponse.data;
+    // Fetch the updates forthe post if any 
+    const updateResponse = await getPostUpdates(id);
+    if (!updateResponse.success || !updateResponse.data) {
+        return <div className="p-4">error retreiving updates from db</div>;
+    }
+    const updates = updateResponse.data;
 
 
 
@@ -78,9 +88,12 @@ export default async function Page({ params }: { params: PageParams }) {
                 </a>}
                 {isOwner ? <OwnerPostButtons id={id} /> : <PostButtons id={id} />}
                 <PostCard post={post} />
+
+                {updates.map((update) => (
+                <PostUpdateCard key={update.id} update={update} post={post} />
+            ))}
                 {isOwner && <PostUpdateForm postId={id} />}
-                <br />
-                Render updates here
+
             </div>
 
 

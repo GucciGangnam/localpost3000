@@ -4,6 +4,7 @@
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ShineBorder } from "@/components/magicui/shine-border";
 
 interface PostForClient {
     id: string;
@@ -48,6 +49,7 @@ export default function PostCard({ post }: { post: PostForClient }) {
 
     return (
         <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+            <ShineBorder shineColor={'#FFB200'} duration={20}/>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
