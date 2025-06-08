@@ -76,7 +76,7 @@ export default async function Page({ params }: { params: PageParams }) {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 w-full'>
             {/* LEFT */}
             <div className="p-2 flex flex-col">
-                <p className="font-bold mb-2">Post</p>
+                <p className="font-bold mb-2">{post.category.charAt(0).toUpperCase() + post.category.slice(1)}</p>
                 {isOwner && <a href="/myposts"
                     className="text-sm text-muted-foreground flex items-center gap-2 hover:underline"
                 >

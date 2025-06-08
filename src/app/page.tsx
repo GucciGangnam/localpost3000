@@ -23,8 +23,10 @@ export default function Root() {
   const [error, setError] = useState<null | string>(null);
 
   const getLocation = () => {
+    console.log(2)
     if (hasLocation) {
       setHasLocation(false)
+      console.log('returning from gettign location')
       return
     }
     setHasLocation(true)

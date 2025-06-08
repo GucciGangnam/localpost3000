@@ -159,7 +159,7 @@ export default function PostCommentCard(comment: CommentForClient) {
                 <button
                     onClick={handleToggleLike}
                     id="Right"
-                    className={`h-fit flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 ${commentLiked ? "bg-orange opacity-80 hover:opacity-100 text-background" : "hover:bg-orange group"
+                    className={`h-fit text-muted-foreground flex flex-col items-center justify-center rounded-md p-2 cursor-pointer transition duration-200 ${commentLiked ? "bg-orange opacity-80 hover:opacity-100 text-background" : "hover:bg-orange group"
                         }`}
                 >
                     <Heart className={`transition duration-200 ${commentLiked ? "text-background" : "group-hover:text-white"}`} />
@@ -171,7 +171,7 @@ export default function PostCommentCard(comment: CommentForClient) {
                 {user?.id === comment.userId &&
 
                     <AlertDialog>
-                        <AlertDialogTrigger className="p-2 hover:bg-destructive hover:opacity-50 hover:text-background  rounded-md cursor-pointer "><CircleX className={`transition duration-200 `} /></AlertDialogTrigger>
+                        <AlertDialogTrigger className="p-2 text-muted-foreground hover:bg-destructive hover:opacity-50 hover:text-background  rounded-md cursor-pointer "><CircleX className={`transition duration-200 `} /></AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Are you sure you want to delete this comment?</AlertDialogTitle>

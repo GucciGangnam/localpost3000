@@ -48,8 +48,8 @@ export default function PostCard({ post }: { post: PostForClient }) {
 
 
     return (
-        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
-            <ShineBorder shineColor={'#FFB200'} duration={20}/>
+        <div className={`cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+            <ShineBorder shineColor={'#FFB200'} duration={10} borderWidth={2} />
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />
@@ -63,7 +63,13 @@ export default function PostCard({ post }: { post: PostForClient }) {
                     <div id="meta">
 
                         <span className="flex items-center gap-2">
-                            <div id="name">{post.owner}</div>
+
+                            <div id="name" className="font-bold">{post.owner}</div>
+
+                            <div className=" font-bold flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
+                                Orginal
+                            </div>
+
                             <div className=""><Verified size={20} fill="var(--orange)" color="var(--background)" /></div>
 
                             {post.category === "none" &&
