@@ -2,6 +2,9 @@
 
 // IMPORTS 
 import pool from "@/lib/db"
+import { clerkClient } from '@clerk/nextjs/server';
+import { revalidatePath } from 'next/cache';
+import { auth } from "@clerk/nextjs/server"
 
 //CREATE USER 
 export const createUser = async (firstname: string, lastname: string, userId: string) => {
@@ -16,7 +19,7 @@ export const createUser = async (firstname: string, lastname: string, userId: st
             VALUES ($1, $2, $3)
             RETURNING *;
         `;
-        const values = [userId, firstname, lastname]; 
+        const values = [userId, firstname, lastname];
         const result = await client.query(query, values);
         client.release();
         return { success: true, data: result.rows[0] }; // Return success and data
@@ -28,10 +31,6 @@ export const createUser = async (firstname: string, lastname: string, userId: st
         return { success: false, error: error.message || 'Failed to create user in database' }; // Return failure and error
     }
 };
-
-// UPDATE USER 
-// UPDATE BIO
-
 
 
 // GET USER 
@@ -55,4 +54,41 @@ export const getUserInfo = async (userId: string) => {
         return { success: false, error: error.message || 'Failed to get user info from database' }; // Return failure and error
     }
 };
+
+
+
+// UPDATE USER 
+// UPDATE BIO
+export const updateBio = async (bio: string) => {
+    // 1. Get the authenticated user ID on the server
+    const { userId } = await auth();
+
+    // 2. Validate that a user is logged in
+    if (!userId) {
+        return { success: false, error: "Unauthorized: No authenticated user." };
+    }
+
+    let client;
+    try {
+        client = await pool.connect(); // Get a client from the pool
+        // SQL query to update the bio
+        const query = `
+            UPDATE users
+            SET bio = $1
+            WHERE id = $2;
+        `;
+        // Parameters for the query: [new_bio_value, user_id]
+        const values = [bio, userId];
+        await client.query(query, values);
+        revalidatePath("/");
+        return { success: true, message: "Bio updated successfully." };
+    } catch (error: any) {
+        console.error("Error updating bio:", error);
+        return { success: false, error: "Failed to update bio." };
+    } finally {
+        if (client) {
+            client.release(); // Release the client back to the pool
+        }
+    }
+}
 

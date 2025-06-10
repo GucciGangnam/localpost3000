@@ -4,6 +4,10 @@ import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { getUserInfo } from "../../actions/user";
 import { getPersonalPosts } from "../../actions/post";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import BioEditor from "./bioEditor";
+
 
 
 
@@ -27,11 +31,8 @@ export default async function Page() {
         return <div>User data not found</div>;
     }
     const myPosts = await getPersonalPosts();
-    if (!myPosts.success) {
-        console.log("Posts not found");
-        return <div>Posts not found</div>;
-    }
     const { bio } = userData.data;
+    const userAvatar = user.imageUrl;
 
 
 
@@ -58,7 +59,6 @@ export default async function Page() {
                                         fontSize: '1.2em',
                                         fontWeight: 'bold',
                                         color: 'red',
-
                                     },
                                 },
                             }}
@@ -67,12 +67,12 @@ export default async function Page() {
                     </div>
 
                     <div id="right" className="grow flex justify-center items-center">
-                        <button className="bg-muted text-sm text-muted-foreground hover:bg-input px-4 py-0.5 rounded-sm">Edit Bio</button>
+                        <BioEditor bio={bio} />
                     </div>
                 </div>
 
                 <div id="Bio" className=" rounded-md flex gap-2 flex-col">
-                    <div>{bio}</div>
+                    <p className="whitespace-pre-wrap">{bio}</p>
                 </div>
 
                 <div id="buttos-container" className="flex flex-col gap-2">
@@ -90,7 +90,39 @@ export default async function Page() {
                 <div id="Title" className="font-bold">My Posts</div>
 
                 <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
-                    <div>poo&#39;p</div>
+                    <div id="Info" className="bg-muted rounded-md p-2 flex flex-col items-center gap-4 w-full">
+                        <div id="top" className="font-bold w-full flex gap-4 items-center">
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src={userAvatar} />
+                                <AvatarFallback>
+                                    {user.firstName?.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            Your Posts
+                        </div>
+                        <div id="mid" className="flex w-full justify-around items-center gap-4">
+                            <div id="Posts-Made" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
+                                <div id="NumberOfPostsMade" className="text-4xl font-bold">
+                                    {myPosts.postCount?.postsMade}
+                                </div>
+                                <div className="text-xs text-muted-foreground ">
+                                    Posts made
+                                </div>
+                            </div>
+                            <div id="Posts-Available" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
+                                <div id="NumberOfPostsAvailable" className="text-4xl font-bold">
+                                    {myPosts.postCount?.postsAvailable}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    Posts available
+                                </div>
+                            </div>
+                        </div>
+                        <div id="bot" className="w-full flex flex-col justify-center items-center">
+                            <Button className="bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full">Get more posts</Button>
+                            <a href="/myposts" className=" font-semibold p-2 rounded-md text-sm text-center bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full mt-2">View my posts</a>
+                        </div>
+                    </div>
                 </div>
 
             </div>

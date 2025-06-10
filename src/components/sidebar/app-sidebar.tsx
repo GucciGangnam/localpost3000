@@ -146,8 +146,7 @@ export function AppSidebar() {
             <SidebarFooter>
                 <Separator className="mt-2 mb-2" />
                 <div className="flex items-center gap-2 rounded-sm p-2  hover:bg-muted cursor-pointer text-sm">
-                    <LogOut />
-                    <SignOutButton>Log out</SignOutButton>
+                    <SignOutButton><LogOut /></SignOutButton>
                 </div>
             </SidebarFooter>
         </Sidebar>
