@@ -3,8 +3,6 @@
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { deletePost } from "@/app/actions/post";
-import { toast } from "sonner"
 
 
 interface PersonalPostForClient {
@@ -23,27 +21,6 @@ interface PersonalPostForClient {
 // COMPONENT
 export default function Card({ post }: { post: PersonalPostForClient }) {
 
-
-    const handleDelete = async (e: any) => {
-        e.preventDefault();
-        try {
-            const response = await deletePost(post.id)
-            if (response.success) {
-                toast.success("Post deleted sucesfully")
-                return;
-            } else {
-                console.error("Failed to delete post:", response.error);
-                toast.error("An error occurred while deleting the post. Please try again later.", {
-                    description: response.error || "Unknown error"
-                });
-                return;
-            }
-        } catch (error) {
-            console.error("Error deleting post:", error);
-            toast("An error occurred while deleting the post. Please try again later.");
-            return;
-        }
-    }
 
 
 

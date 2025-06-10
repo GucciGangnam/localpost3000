@@ -7,6 +7,7 @@ import { getPersonalPosts } from "../../actions/post";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import BioEditor from "./bioEditor";
+import { ShineBorder } from "@/components/magicui/shine-border";
 
 
 
@@ -43,7 +44,7 @@ export default async function Page() {
             <div id="Left" className=" w-full flex flex-col gap-8 max-w-130">
 
                 <div id="NameAndPhoto" className="rounded-md flex">
-                    <div id="Left" className=" flex items-center gap-4">
+                    <div id="Left" className="flex items-center gap-4 border-2 border-muted rounded-md p-2">
                         <UserButton
                             showName={true}
                             appearance={{
@@ -63,7 +64,6 @@ export default async function Page() {
                                 },
                             }}
                         />
-
                     </div>
 
                     <div id="right" className="grow flex justify-center items-center">

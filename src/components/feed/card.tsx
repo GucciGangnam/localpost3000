@@ -1,10 +1,10 @@
 
-
 'use client'
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import CardButtons from "./card-buttons"
+import { useRouter } from 'next/navigation';
 
 interface PostForClient {
     id: string;
@@ -19,6 +19,12 @@ interface PostForClient {
 
 // COMPONENT
 export default function Card({ post }: { post: PostForClient }) {
+    const router = useRouter();
+    const handleClickUser = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`/profile/${post.owner}`);
+    }
 
     const utcTimeNow = new Date().getTime();
     const timeDifference = utcTimeNow - post.timeStamp;
@@ -50,7 +56,7 @@ export default function Card({ post }: { post: PostForClient }) {
     return (
         <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
-                <Avatar>
+                <Avatar onClick={handleClickUser}>
                     <AvatarImage src={post.ownerAvatar} />
                     <AvatarFallback>
                         {post.owner.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
@@ -62,7 +68,7 @@ export default function Card({ post }: { post: PostForClient }) {
                     <div id="meta">
 
                         <span className="flex items-center gap-2">
-                            <div id="name">{post.owner}</div>
+                            <div onClick={handleClickUser} id="name" className="hover:underline">{post.owner}</div>
                             <div className=""><Verified size={20} fill="var(--orange)" color="var(--background)" /></div>
 
                             {post.category === "none" &&
@@ -123,7 +129,7 @@ export default function Card({ post }: { post: PostForClient }) {
                 </div>
                 <div id="right-bottom" className="relative flex justify-end gap-2">
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
-                    <CardButtons postID={post.id}/>
+                    <CardButtons postID={post.id} />
                     {/* EXPORT THIS SECTION INTO A CLIENT COMPOENT SO THEY CAN BE BUTTONS WITH EVENT HANDLER */}
                 </div>
             </div>
