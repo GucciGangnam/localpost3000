@@ -23,6 +23,8 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
+// import DropZone from "../dropzone/dropZone";
+
 
 
 // TYPES 
@@ -70,7 +72,7 @@ export default function NewPostForm() {
             toast("Post created successfully")
             // Optionally, you can redirect to the new post or refresh the page
             redirect(`/post/${response.data.id}`); // Redirect to the new post page
-            
+
         } else {
             console.error("Post creation failed:", response.error);
             toast("An error occurred while creating the post. Please try again later.", {
@@ -116,6 +118,7 @@ export default function NewPostForm() {
 
                 <div id="bottom" className="w-fill flex justify-between items-center">
                     <button className="bg-muted px-4 rounded-sm text-muted-foreground hover:bg-input">Add photo</button>
+                    {/* <DropZone /> */}
 
                     {newPostContent.length < 1 ? (
                         <button className="bg-orange text-white px-3 py-1.5 rounded-md hover:bg-orange hover:opacity-80">

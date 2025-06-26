@@ -6,6 +6,15 @@ import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "l
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface PostForClient {
     id: string;
@@ -128,16 +137,35 @@ export default function PostCard({ post }: { post: PostForClient }) {
                     <div id="content">
                         {post.content}
                     </div>
+
                     {/* Attachments */}
-                    {post.attachment && post.attachment.startsWith("http") &&
-                        <div
-                            id="attachment"
-                            className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
-                                }`}
-                        >
-                            <img src={post.attachment} alt="Attachment" className="rounded-md" />
-                        </div>
+                    {
+                        post.attachment &&
+                        post.attachment.startsWith('http') && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <div
+                                        id="attachment"
+                                        className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md relative' : ''
+                                            } ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''}`}
+                                        style={{ cursor: 'pointer' }} // Indicate clickable behavior
+                                    >
+                                        <div className="absolute text-muted text-center w-full hidden sm:block">Click image to view</div>  <img src={post.attachment} alt="Attachment" className="rounded-md" />
+                                    </div>
+                                </DialogTrigger>
+                                <DialogContent className="w-fit h-full max-h-full flex flex-col justify-center items-center">
+                                    <DialogTitle></DialogTitle>
+                                    <img
+                                        src={post.attachment}
+                                        alt="Full screen attachment"
+                                        className="max-w-full max-h-full object-contain"
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        )
                     }
+
+
                 </div>
                 <div id="right-bottom" className="relative flex justify-end gap-2">
                 </div>
