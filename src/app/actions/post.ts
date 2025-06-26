@@ -47,10 +47,15 @@ interface PersonalPostForClient {
 
 
 // CREATE POST
-export const createPost = async (postContent: string, newPostTag: "none" | "discuss" | "news" | "event" | "commercial", coordinates: {
-    latitude: number;
-    longitude: number;
-} | null) => {
+export const createPost = async (
+    postContent: string,
+    newPostTag: "none" | "discuss" | "news" | "event" | "commercial",
+    coordinates: {
+        latitude: number;
+        longitude: number;
+    } | null,
+    imageUrl?: string | null // This will now receive the URL from Cloudinary
+) => {
     if (!coordinates) {
         return { success: false, error: 'Coordinates are required' }; // Return failure if coordinates are not provided
     }
@@ -82,12 +87,25 @@ export const createPost = async (postContent: string, newPostTag: "none" | "disc
             return { success: false, error: "You don't have any available posts left." };
         }
 
-        const query = `
+
+        let query: string;
+        let values: any[];
+
+        if (imageUrl) {
+            query = `
+            INSERT INTO posts (user_id, content_text, category, longitude, latitude, hotness, attachment_url)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *;
+            `;
+            values = [userId, postContent, newPostTag, longitude, latitude, 1, imageUrl];
+        } else {
+            query = `
             INSERT INTO posts (user_id, content_text, category, longitude, latitude, hotness)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *;
-        `;
-        const values = [userId, postContent, newPostTag, longitude, latitude, 1];
+            `;
+            values = [userId, postContent, newPostTag, longitude, latitude, 1];
+        }
         const result = await client.query(query, values);
 
         // Increment the total_posts column for the user

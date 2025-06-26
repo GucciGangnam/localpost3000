@@ -31,3 +31,4 @@ export const getLocation = (): Promise<{ latitude: number; longitude: number } |
     );
   });
 };
+
