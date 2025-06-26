@@ -1,5 +1,5 @@
 
-import { CreditCard, KeyRound, GlobeLock } from "lucide-react";
+import { CreditCard, KeyRound, GlobeLock, Radio, CircleCheck, Signpost, Cake, BadgeCheck } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { getUserInfo } from "../../actions/user";
@@ -7,14 +7,11 @@ import { getPersonalPosts } from "../../actions/post";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import BioEditor from "./bioEditor";
-import { ShineBorder } from "@/components/magicui/shine-border";
 
 
 
 
 // TYPES 
-
-
 
 export default async function Page() {
 
@@ -27,6 +24,7 @@ export default async function Page() {
 
     const userID = user.id;
     const userData = await getUserInfo(userID);
+    console.log("User Data:", userData);
     if (!userData.success) {
         console.log("User data not found");
         return <div>User data not found</div>;
@@ -39,7 +37,7 @@ export default async function Page() {
 
 
     return (
-        <div className="p-4 flex justify-center items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 max-h-screen ">
+        <div className="p-4 flex items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 max-h-screen ">
 
             <div id="Left" className=" w-full flex flex-col gap-8 max-w-130">
 
@@ -87,7 +85,6 @@ export default async function Page() {
 
 
             <div id="Right" className="  max-h-full w-full flex flex-col gap-2 max-w-130">
-                <div id="Title" className="font-bold">My Posts</div>
 
                 <div className=" rounded-md min-h-40 flex flex-col gap-4 justify-center items-center">
                     <div id="Info" className="bg-muted rounded-md p-2 flex flex-col items-center gap-4 w-full">
@@ -98,36 +95,68 @@ export default async function Page() {
                                     {user.firstName?.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            Your Posts
+                            Dashboard
                         </div>
-                        <div id="mid" className="flex w-full justify-around items-center gap-4">
-                            <div id="Posts-Made" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
-                                <div id="NumberOfPostsMade" className="text-4xl font-bold">
-                                    {myPosts.postCount?.postsMade}
-                                </div>
-                                <div className="text-xs text-muted-foreground ">
-                                    Posts made
-                                </div>
+
+                        <div className="flex flex-col w-full gap-3">
+                        <div className="flex items-center justify-between bg-input rounded-md px-4 py-2">
+                            <div className="flex items-center gap-2">
+                                <Cake size={20} className="text-orange" />
+                                <span className="text-muted-foreground font-medium">Joined</span>
                             </div>
-                            <div id="Posts-Available" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
-                                <div id="NumberOfPostsAvailable" className="text-4xl font-bold">
-                                    {myPosts.postCount?.postsAvailable}
+                            <span className="text-muted-foreground">
+                                {new Date(userData.data.created_at).toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between bg-input rounded-md px-4 py-2">
+                            <div className="flex items-center gap-2">
+                                <BadgeCheck size={20} className="text-orange" />
+                                <span className="text-muted-foreground font-medium">Verified</span>
+                            </div>
+                            <span className="text-muted-foreground ">
+                                {userData.data.verified ? 'Yes' : 'No'}
+                            </span>
+                        </div>
+
+
+                            <div className="flex items-center justify-between bg-input rounded-md px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                    <CircleCheck size={20} className="text-orange" />
+                                    <span className="text-muted-foreground font-medium">Posts Made</span>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                    Posts available
+                                <span className="text-muted-foreground">{myPosts.postCount?.postsMade ?? 0}</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-input rounded-md px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                    <Signpost size={20} className="text-orange" />
+                                    <span className="text-muted-foreground font-medium">Posts Available</span>
                                 </div>
+                                <span className="text-muted-foreground">{myPosts.postCount?.postsAvailable ?? 0}</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-input rounded-md px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                    <Radio size={20} className="text-orange" />
+                                    <span className="text-muted-foreground font-medium">Boosts Remaining</span>
+                                </div>
+                                <span className="text-muted-foreground">{myPosts.postCount?.postsAvailable ?? 0}</span>
                             </div>
                         </div>
-                        <div id="bot" className="w-full flex flex-col justify-center items-center">
-                            <Button className="bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full">Get more posts</Button>
-                            <a href="/myposts" className=" font-semibold p-2 rounded-md text-sm text-center bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full mt-2">View my posts</a>
-                        </div>
+
+
+                    </div>
+                    <div id="bot" className="w-full flex flex-col justify-center items-center">
+                        <Button className="bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full">Get more posts</Button>
+                        <a href="/myposts" className=" font-semibold p-2 rounded-md text-sm text-center bg-input hover:bg-orange cursor-pointer text-muted-foreground hover:text-background w-full mt-2">View my posts</a>
                     </div>
                 </div>
-
             </div>
 
-
         </div>
+
+
     )
 }

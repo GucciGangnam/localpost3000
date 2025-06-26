@@ -7,6 +7,7 @@ import { Pin } from "lucide-react";
 // Types 
 interface PostForClient {
     id: string;
+    ownerId: string;
     owner: string;
     ownerAvatar: string;
     timeStamp: number;

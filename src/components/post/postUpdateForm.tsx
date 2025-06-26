@@ -83,7 +83,7 @@ export default function PostUpdateForm({ postId }: PostIDFormProps) {
 
     return (
 
-        <div className="bg-muted p-2 mt-2 rounded-md">
+        <div className="bg-muted p-2 mt-2 rounded-md overflow-hidden">
             <p className="font-bold text-muted-foreground mb-2">Post an update</p>
             <form onSubmit={handlePostUpdate} className="flex bg-background rounded-md p-2 gap-2 w-full">
                 <div id="Right" className="flex flex-col w-full">

@@ -22,7 +22,7 @@ interface DbPost {
 }
 interface PostForClient {
     id: string;
-    ownerId?: string;
+    ownerId: string;
     owner: string; // This will now be the user's full name
     ownerAvatar: string; // New field for the avatar URL
     timeStamp: number;
@@ -260,6 +260,7 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
 
             return {
                 id: post.id,
+                ownerId: post.user_id, // Include the user ID for potential future use
                 owner: ownerDisplayName, // Use the name from Clerk
                 ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
                 timeStamp: post.created_at.getTime(),
@@ -379,6 +380,7 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
 
             return {
                 id: post.id,
+                ownerId: post.user_id, // Include the user ID for potential future use
                 owner: ownerDisplayName, // Use the name from Clerk
                 ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
                 timeStamp: post.created_at.getTime(),
@@ -498,6 +500,7 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
 
             return {
                 id: post.id,
+                ownerId: post.user_id, // Include the user ID for potential future use
                 owner: ownerDisplayName, // Use the name from Clerk
                 ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
                 timeStamp: post.created_at.getTime(),
@@ -706,6 +709,7 @@ export const getPinnedPosts = async () => {
 
             return {
                 id: post.id,
+                ownerId: post.user_id, // Include the user ID for potential future use
                 owner: ownerDisplayName, // Use the name from Clerk
                 ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
                 timeStamp: post.created_at.getTime(),

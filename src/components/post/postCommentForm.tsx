@@ -95,7 +95,7 @@ export default function PostCommentForm({ postId }: PostIDFormProps) { // Destru
     };
 
     return (
-        <form onSubmit={handleSubmitComment} className="flex bg-background rounded-md p-2 gap-2 w-full">
+        <form onSubmit={handleSubmitComment} className="flex bg-background rounded-md p-2 gap-2 w-full overflow-hidden">
             <Avatar>
                 <AvatarImage src={userAvatarUrl} />
                 <AvatarFallback>

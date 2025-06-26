@@ -94,7 +94,7 @@ export default function PostUpdateCard({ post, update }: PostUpdateCardProps) {
     }
 
     return (
-        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full mt-2`}>
+        <div className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full mt-2 overflow-hidden`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />

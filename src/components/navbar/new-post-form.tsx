@@ -64,10 +64,13 @@ export default function NewPostForm() {
 
         const response = await createPost(newPostContent, newPostTag, location);
         if (response.success) {
+            console.log("Post created successfully:", response.data);
             setNewPostContent(''); // Clear the textarea after submission
             setNewPostTag('none'); // Reset the tag selection
             toast("Post created successfully")
-            window.location.reload(); // Reload the page to see the new post
+            // Optionally, you can redirect to the new post or refresh the page
+            redirect(`/post/${response.data.id}`); // Redirect to the new post page
+            
         } else {
             console.error("Post creation failed:", response.error);
             toast("An error occurred while creating the post. Please try again later.", {

@@ -5,9 +5,11 @@
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ShineBorder } from "@/components/magicui/shine-border";
+import { useRouter } from 'next/navigation';
 
 interface PostForClient {
     id: string;
+    ownerId: string; // This will now be the user's ID
     owner: string; // This will now be the user's full name
     ownerAvatar: string; // New field for the avatar URL
     timeStamp: number;
@@ -45,13 +47,22 @@ export default function PostCard({ post }: { post: PostForClient }) {
         timeAgo = `${timeDifferenceInYears} years ago`;
     }
 
+    // Initialize router
+    const router = useRouter();
+    // Redirect user on user name click 
+    const handleClickUser = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`/profile/${post.ownerId}`);
+    }
+
 
 
     return (
-        <div className={`cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <div className={`cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full overflow-hidden ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <ShineBorder shineColor={'#FFB200'} duration={10} borderWidth={2} />
             <div id="left" className="pt-1">
-                <Avatar>
+                <Avatar onClick={handleClickUser} className="cursor-pointer">
                     <AvatarImage src={post.ownerAvatar} />
                     <AvatarFallback>
                         {post.owner.split(" ").slice(0, 2).map(name => name[0]).join("").toUpperCase()}
@@ -64,7 +75,7 @@ export default function PostCard({ post }: { post: PostForClient }) {
 
                         <span className="flex items-center gap-2">
 
-                            <div id="name" className="font-bold">{post.owner}</div>
+                            <div id="name" className="font-bold hover:underline" onClick={handleClickUser}>{post.owner}</div>
 
                             <div className=" font-bold flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">
                                 Orginal

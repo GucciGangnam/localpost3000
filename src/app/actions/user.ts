@@ -40,18 +40,65 @@ export const getUserInfo = async (userId: string) => {
     try {
         client = await pool.connect();
         const query = `
-            SELECT first_name, last_name, bio, verified FROM users WHERE id = $1;
+            SELECT first_name, last_name, bio, verified, created_at, total_posts FROM users WHERE id = $1;
         `;
         const values = [userId];
         const result = await client.query(query, values);
         client.release();
-        return { success: true, data: result.rows[0] }; // Return success and data
+
+        if (!result.rows[0]) {
+            return { success: false, error: "User not found in database." };
+        }
+
+        // Fetch avatar from Clerk
+        let avatarUrl = null;
+        try {
+            const clientInstance = await clerkClient();
+            const clerkUser = await clientInstance.users.getUser(userId);
+            avatarUrl = clerkUser?.imageUrl || null;
+        } catch (clerkError) {
+            console.warn("Could not fetch avatar from Clerk:", clerkError);
+        }
+
+        return { 
+            success: true, 
+            data: { 
+                ...result.rows[0], 
+                avatar: avatarUrl 
+            } 
+        };
     } catch (error: any) {
         console.error('Database error getting user info:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get user info from database' }; // Return failure and error
+        return { success: false, error: error.message || 'Failed to get user info from database' };
+    }
+};
+
+// Check if user is verified 
+export const isUserVerified = async (userId: string) => {
+    let client;
+    try {
+        client = await pool.connect();
+        const query = `
+            SELECT verified FROM users WHERE id = $1;
+        `;
+        const values = [userId];
+        const result = await client.query(query, values);
+        client.release();
+
+        if (!result.rows[0]) {
+            return { success: false, error: "User not found in database." };
+        }
+
+        return { success: true, verified: result.rows[0].verified };
+    } catch (error: any) {
+        console.error('Database error checking user verification:', error);
+        if (client) {
+            client.release();
+        }
+        return { success: false, error: error.message || 'Failed to check user verification status' };
     }
 };
 

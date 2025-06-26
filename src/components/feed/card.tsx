@@ -5,9 +5,12 @@ import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "l
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import CardButtons from "./card-buttons"
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { isUserVerified } from "@/app/actions/user";
 
 interface PostForClient {
     id: string;
+    ownerId: string;
     owner: string; // This will now be the user's full name
     ownerAvatar: string; // New field for the avatar URL
     timeStamp: number;
@@ -19,11 +22,23 @@ interface PostForClient {
 
 // COMPONENT
 export default function Card({ post }: { post: PostForClient }) {
+
+    // Check if user is verified 
+    const [userVerified, setUserVerfied] = useState(false);
+    useEffect(() => {
+        const checkUserVerified = async () => {
+            const result = await isUserVerified(post.ownerId);
+            setUserVerfied(result.success ? result.verified : false);
+        }
+        checkUserVerified();
+    }, [post.ownerId]);
+
+
     const router = useRouter();
     const handleClickUser = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        router.push(`/profile/${post.owner}`);
+        router.push(`/profile/${post.ownerId}`);
     }
 
     const utcTimeNow = new Date().getTime();
@@ -54,7 +69,7 @@ export default function Card({ post }: { post: PostForClient }) {
 
 
     return (
-        <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+        <a href={`/post/${post.id}`} className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full overflow-hidden ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar onClick={handleClickUser}>
                     <AvatarImage src={post.ownerAvatar} />
@@ -67,9 +82,9 @@ export default function Card({ post }: { post: PostForClient }) {
                 <div id="right-top" className=" flex flex-col gap-2 ">
                     <div id="meta">
 
-                        <span className="flex items-center gap-2">
-                            <div onClick={handleClickUser} id="name" className="hover:underline">{post.owner}</div>
-                            <div className=""><Verified size={20} fill="var(--orange)" color="var(--background)" /></div>
+                        <span className="flex items-center gap-1">
+                            <div onClick={handleClickUser} id="name" className="hover:underline w-fit">{post.owner}</div>
+                            {userVerified && <Verified color="var(--orange)" size={14} />}
 
                             {post.category === "none" &&
                                 <div className=" flex justify-center items-center gap-1 text-xs text-muted-foreground p-0.5 px-1 rounded-sm bg-input">

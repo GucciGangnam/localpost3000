@@ -47,7 +47,6 @@ export default async function Page() {
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 w-full'>
 
             <div id="Info" className="bg-muted rounded-md p-2 flex flex-col items-center gap-4">
-
                 <div id="top" className="font-bold w-full flex gap-4 items-center">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={userAvatar} />
@@ -57,9 +56,7 @@ export default async function Page() {
                     </Avatar>
                     Your Posts
                 </div>
-
                 <div id="mid" className="flex w-full justify-around items-center gap-4">
-
                     <div id="Posts-Made" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
                         <div id="NumberOfPostsMade" className="text-4xl font-bold">
                             {myPosts.postCount?.postsMade}
@@ -68,7 +65,6 @@ export default async function Page() {
                             Posts made
                         </div>
                     </div>
-
                     <div id="Posts-Available" className=" h-full flex flex-col items-center justify-center bg-input rounded-md p-1 px-2 gap-1 text-muted-foreground min-w-max aspect-square">
                         <div id="NumberOfPostsAvailable" className="text-4xl font-bold">
                         {myPosts.postCount?.postsAvailable}
@@ -77,13 +73,10 @@ export default async function Page() {
                             Posts available
                         </div>
                     </div>
-
                 </div>
-
                 <div id="bot" className="w-full flex justify-center items-center">
                     <Button className="bg-input hover:bg-orange cursor-pointer text-primary hover:text-background w-full">Get more posts</Button>
                 </div>
-
             </div>
 
             {myPosts?.data && myPosts.data.length > 0 ? (

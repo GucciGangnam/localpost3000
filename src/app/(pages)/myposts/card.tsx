@@ -26,7 +26,7 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
 
     return (
         <div
-            className={` cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
+            className={` overflow-hidden cursor-pointer relative bg-muted flex p-2 gap-2 rounded-md w-full ${post.attachment ? 'row-span-2' : 'row-span-1'}`}>
             <div id="left" className="pt-1">
                 <Avatar>
                     <AvatarImage src={post.ownerAvatar} />

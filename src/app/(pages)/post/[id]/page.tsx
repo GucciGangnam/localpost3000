@@ -21,7 +21,7 @@ interface PageParams {
 
 interface PostForClient {
     id: string;
-    ownerId?: string
+    ownerId: string
     owner: string;
     ownerAvatar: string;
     timeStamp: number;
@@ -87,8 +87,8 @@ export default async function Page({ params }: { params: PageParams }) {
                 <PostCard post={post} />
 
                 {updates?.map((update) => (
-                <PostUpdateCard key={update.id} update={update} post={post} />
-            ))}
+                    <PostUpdateCard key={update.id} update={update} post={post} />
+                ))}
                 {isOwner && <PostUpdateForm postId={id} />}
 
             </div>
@@ -97,7 +97,7 @@ export default async function Page({ params }: { params: PageParams }) {
             {/* RIGHT */}
             <div className=" p-2 rounded-md flex flex-col">
                 <p className="font-bold mb-2">Comments</p>
-                <div className="bg-muted p-4 rounded-md flex flex-col gap-2">
+                <div className="bg-muted p-2 rounded-md flex flex-col gap-2">
                     <PostCommentForm postId={post.id} />
                     {comments.map((comment) => (
                         <PostCommentCard {...comment} key={comment.id} />

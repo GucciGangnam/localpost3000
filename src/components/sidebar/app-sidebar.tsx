@@ -1,4 +1,6 @@
-import { Home, LogOut, NewspaperIcon, Speech, Calendar1, Tag, Gamepad2, Pin, Signpost } from "lucide-react"
+
+
+import { Home, LogOut, NewspaperIcon, Speech, Calendar1, Tag, Gamepad2, Pin, Signpost, CircleUserRound } from "lucide-react"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 
@@ -61,6 +63,14 @@ const items = [
     },
 ]
 
+const authItems = [
+    {
+        title: "Account",
+        url: "/feed?filter=all&sort=hot",
+        icon: CircleUserRound,
+    }
+]
+
 const personalItems = [
     {
         title: "My Posts",
@@ -77,6 +87,9 @@ const personalItems = [
 
 // COMPONENT
 export function AppSidebar() {
+
+
+
     return (
         <Sidebar className="text-muted-foreground">
             <SidebarContent>
@@ -93,14 +106,24 @@ export function AppSidebar() {
 
                     {/*  SIGNED OUT */}
                     <SignedOut>
-                        <div className="flex flex-col gap-1">
-                            <SignUpButton mode="modal">
-                                <Button className="cursor-pointer">Sign up</Button>
-                            </SignUpButton>
-                            <SignInButton mode="modal">
-                                <Button className="cursor-pointer">Log in</Button>
-                            </SignInButton>
-                        </div>
+
+                        <SidebarGroupContent>
+                            <SidebarMenu className="text-muted-foreground cursor-pointer">
+                                {authItems.map((item) => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <SignUpButton mode="modal">
+                                                <span className="cursor-pointer">
+                                                    <CircleUserRound />
+                                                    <span>{item.title}</span>
+                                                </span>
+                                            </SignUpButton>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+
                     </SignedOut>
 
                     <Separator className="mt-2 mb-2" />
@@ -121,8 +144,8 @@ export function AppSidebar() {
                                 ))}
                             </SidebarMenu>
                         </SidebarGroupContent>
+                        <Separator className="mt-2 mb-2" />
                     </SignedIn>
-                    <Separator className="mt-2 mb-2" />
 
                     <SidebarGroupContent>
                         <SidebarGroupLabel>Sections</SidebarGroupLabel>
@@ -143,12 +166,15 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter>
-                <Separator className="mt-2 mb-2" />
-                <div className="flex items-center gap-2 rounded-sm p-2  hover:bg-muted cursor-pointer text-sm">
-                    <SignOutButton><LogOut /></SignOutButton>
-                </div>
-            </SidebarFooter>
+            <SignedIn>
+                <SidebarFooter>
+                    <Separator className="mt-2 mb-2" />
+                    <div className="flex items-center gap-2 rounded-sm p-2  hover:bg-muted cursor-pointer text-sm">
+                        <SignOutButton><LogOut /></SignOutButton>
+                    </div>
+                </SidebarFooter>
+            </SignedIn >
+
         </Sidebar>
     )
 }
