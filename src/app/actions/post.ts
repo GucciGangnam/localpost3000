@@ -180,9 +180,15 @@ export const deletePost = async (postId: string) => {
 
 // // // // // // // // // // // GETTING POSTS // // // // // // // // // // //
 // THIS GETS ALL POSTS BY NEWEST
-export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
+export const getAllPostsByNewest = async (
+    filter: "all" | 'news' | 'discuss' | 'event' | 'commercial',
+    longitude: number,
+    latitude: number,
+    offset: number,
+) => {
 
     let client;
+    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
 
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -191,7 +197,6 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
 
     try {
         client = await pool.connect();
-        // ADD FILTER QUERY LOGIC !!!!!!!!!!
 
         // If filter is 'all', we want to get all posts regardless of category
         let query: string;
@@ -210,7 +215,7 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY created_at DESC
-                LIMIT 20;
+                LIMIT 20 OFFSET $4;
             `;
         } else {
             query = `
@@ -228,25 +233,20 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY created_at DESC
-                LIMIT 20;
+                LIMIT 20 OFFSET $5;
             `;
         }
         // Execute the query with the appropriate filter
         const radiusKm = 1; // 1km radius - you can make this configurable
         const values = filter === 'all'
-            ? [latitude, longitude, radiusKm]
-            : [filter, latitude, longitude, radiusKm];
+            ? [latitude, longitude, radiusKm, offset]
+            : [filter, latitude, longitude, radiusKm, offset];
         const result = await client.query(query, values);
-        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
-
+        const dbPosts: DbPost[] = result.rows;
 
         // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
-        // 1. Collect all unique Clerk user IDs from the fetched posts
         const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
-        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
-        // We'll store them in a Map for quick lookup
         const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
-        // Use Promise.all to fetch all user details concurrently for efficiency
         await Promise.all(
             uniqueClerkUserIds.map(async (clerkUserId) => {
                 try {
@@ -254,14 +254,13 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
                     const user = await clerk.users.getUser(clerkUserId);
                     usersDataMap.set(clerkUserId, {
                         imageUrl: user.imageUrl,
-                        fullName: user.fullName, // Clerk provides fullName
-                        username: user.username,  // Clerk provides username
+                        fullName: user.fullName,
+                        username: user.username,
                     });
                 } catch (error) {
                     console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
-                    // Fallback in case a user is not found or there's an API error
                     usersDataMap.set(clerkUserId, {
-                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        imageUrl: '/default-avatar.png',
                         fullName: null,
                         username: null,
                     });
@@ -269,18 +268,14 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
             })
         );
 
-        // 3. Modify each post to include owner's name and avatar URL
         const posts: PostForClient[] = dbPosts.map((post: DbPost) => {
             const userData = usersDataMap.get(post.user_id);
-
-            // Determine the display name (fullName preferred, then username, then generic)
             const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
-
             return {
                 id: post.id,
-                ownerId: post.user_id, // Include the user ID for potential future use
-                owner: ownerDisplayName, // Use the name from Clerk
-                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                ownerId: post.user_id,
+                owner: ownerDisplayName,
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png',
                 timeStamp: post.created_at.getTime(),
                 content: post.content_text,
                 attachment: post.attachment_url,
@@ -301,8 +296,14 @@ export const getAllPostsByNewest = async (filter: "all" | 'news' | 'discuss' | '
     }
 }
 // THIS GETS ALL POSTS BY OLDEST
-export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
+export const getAllPostsByOldest = async (
+    filter: "all" | 'news' | 'discuss' | 'event' | 'commercial',
+    longitude: number,
+    latitude: number,
+    offset: number,
+) => {
     let client;
+    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
 
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -311,7 +312,6 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
 
     try {
         client = await pool.connect();
-        // ADD FILTER QUERY LOGIC !!!!!!!!!!
 
         // If filter is 'all', we want to get all posts regardless of category
         let query: string;
@@ -330,7 +330,7 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY created_at ASC
-                LIMIT 20;
+                LIMIT 20 OFFSET $4;
             `;
         } else {
             query = `
@@ -348,25 +348,20 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY created_at ASC
-                LIMIT 20;
+                LIMIT 20 OFFSET $5;
             `;
         }
         // Execute the query with the appropriate filter
         const radiusKm = 1; // 1km radius - you can make this configurable
         const values = filter === 'all'
-            ? [latitude, longitude, radiusKm]
-            : [filter, latitude, longitude, radiusKm];
+            ? [latitude, longitude, radiusKm, offset]
+            : [filter, latitude, longitude, radiusKm, offset];
         const result = await client.query(query, values);
-        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
-
+        const dbPosts: DbPost[] = result.rows;
 
         // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
-        // 1. Collect all unique Clerk user IDs from the fetched posts
         const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
-        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
-        // We'll store them in a Map for quick lookup
         const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
-        // Use Promise.all to fetch all user details concurrently for efficiency
         await Promise.all(
             uniqueClerkUserIds.map(async (clerkUserId) => {
                 try {
@@ -374,14 +369,13 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
                     const user = await clerk.users.getUser(clerkUserId);
                     usersDataMap.set(clerkUserId, {
                         imageUrl: user.imageUrl,
-                        fullName: user.fullName, // Clerk provides fullName
-                        username: user.username,  // Clerk provides username
+                        fullName: user.fullName,
+                        username: user.username,
                     });
                 } catch (error) {
                     console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
-                    // Fallback in case a user is not found or there's an API error
                     usersDataMap.set(clerkUserId, {
-                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        imageUrl: '/default-avatar.png',
                         fullName: null,
                         username: null,
                     });
@@ -389,18 +383,14 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
             })
         );
 
-        // 3. Modify each post to include owner's name and avatar URL
         const posts: PostForClient[] = dbPosts.map((post: DbPost) => {
             const userData = usersDataMap.get(post.user_id);
-
-            // Determine the display name (fullName preferred, then username, then generic)
             const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
-
             return {
                 id: post.id,
-                ownerId: post.user_id, // Include the user ID for potential future use
-                owner: ownerDisplayName, // Use the name from Clerk
-                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                ownerId: post.user_id,
+                owner: ownerDisplayName,
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png',
                 timeStamp: post.created_at.getTime(),
                 content: post.content_text,
                 attachment: post.attachment_url,
@@ -421,8 +411,14 @@ export const getAllPostsByOldest = async (filter: "all" | 'news' | 'discuss' | '
     }
 }
 // THIS GETS ALL POSTS BY HOTNESS
-export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'event' | 'commercial', longitude: number, latitude: number) => {
+export const getAllPostsByHot = async (
+    filter: "all" | 'news' | 'discuss' | 'event' | 'commercial',
+    longitude: number,
+    latitude: number,
+    offset: number
+) => {
     let client;
+    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
 
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -431,7 +427,6 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
 
     try {
         client = await pool.connect();
-        // ADD FILTER QUERY LOGIC !!!!!!!!!!
 
         // If filter is 'all', we want to get all posts regardless of category
         let query: string;
@@ -450,7 +445,7 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY hotness DESC
-                LIMIT 20;
+                LIMIT 20 OFFSET $4;
             `;
         } else {
             query = `
@@ -468,25 +463,20 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY hotness DESC
-                LIMIT 20;
+                LIMIT 20 OFFSET $5;
             `;
         }
         // Execute the query with the appropriate filter
         const radiusKm = 1; // 1km radius - you can make this configurable
         const values = filter === 'all'
-            ? [latitude, longitude, radiusKm]
-            : [filter, latitude, longitude, radiusKm];
+            ? [latitude, longitude, radiusKm, offset]
+            : [filter, latitude, longitude, radiusKm, offset];
         const result = await client.query(query, values);
-        const dbPosts: DbPost[] = result.rows; // Type the raw results from your DB
-
+        const dbPosts: DbPost[] = result.rows;
 
         // --- NEW LOGIC TO FETCH AVATARS & NAMES FROM CLERK ---
-        // 1. Collect all unique Clerk user IDs from the fetched posts
         const uniqueClerkUserIds = [...new Set(dbPosts.map(post => post.user_id))];
-        // 2. Fetch user details (including avatar) from Clerk for all unique IDs
-        // We'll store them in a Map for quick lookup
         const usersDataMap = new Map<string, { imageUrl: string; fullName: string | null; username: string | null }>();
-        // Use Promise.all to fetch all user details concurrently for efficiency
         await Promise.all(
             uniqueClerkUserIds.map(async (clerkUserId) => {
                 try {
@@ -494,14 +484,13 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
                     const user = await clerk.users.getUser(clerkUserId);
                     usersDataMap.set(clerkUserId, {
                         imageUrl: user.imageUrl,
-                        fullName: user.fullName, // Clerk provides fullName
-                        username: user.username,  // Clerk provides username
+                        fullName: user.fullName,
+                        username: user.username,
                     });
                 } catch (error) {
                     console.error(`Error fetching Clerk user ${clerkUserId}:`, error);
-                    // Fallback in case a user is not found or there's an API error
                     usersDataMap.set(clerkUserId, {
-                        imageUrl: '/default-avatar.png', // Path to a default avatar image in your public folder
+                        imageUrl: '/default-avatar.png',
                         fullName: null,
                         username: null,
                     });
@@ -509,18 +498,14 @@ export const getAllPostsByHot = async (filter: "all" | 'news' | 'discuss' | 'eve
             })
         );
 
-        // 3. Modify each post to include owner's name and avatar URL
         const posts: PostForClient[] = dbPosts.map((post: DbPost) => {
             const userData = usersDataMap.get(post.user_id);
-
-            // Determine the display name (fullName preferred, then username, then generic)
             const ownerDisplayName = userData?.fullName || userData?.username || 'Unknown User';
-
             return {
                 id: post.id,
-                ownerId: post.user_id, // Include the user ID for potential future use
-                owner: ownerDisplayName, // Use the name from Clerk
-                ownerAvatar: userData?.imageUrl || '/default-avatar.png', // Use the avatar URL from Clerk
+                ownerId: post.user_id,
+                owner: ownerDisplayName,
+                ownerAvatar: userData?.imageUrl || '/default-avatar.png',
                 timeStamp: post.created_at.getTime(),
                 content: post.content_text,
                 attachment: post.attachment_url,
