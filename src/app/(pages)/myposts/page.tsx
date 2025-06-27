@@ -17,7 +17,7 @@ interface PersonalPostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
     longitude: number;
     latitude: number;
 }
@@ -33,13 +33,10 @@ export default async function Page() {
     const user = await client.users.getUser(userId);
     const myPosts = await getPersonalPosts();
     if (!myPosts.success) {
-        console.log("Posts not found");
         return <div>Posts not found</div>;
     }
 
     const userAvatar = user.imageUrl;
-
-    console.log(myPosts.postCount);
 
 
 

@@ -89,7 +89,6 @@ export const getPostUpdates = async (postId: string) => {
         const updatesArray: Update[] = result.rows; // Assign the entire array of rows
 
         client.release();
-        console.log(updatesArray); // This should now log an array of all updates
 
         // It's good practice to check if any rows were found even after the fix
         if (updatesArray.length === 0) {

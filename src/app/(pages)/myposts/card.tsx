@@ -13,7 +13,7 @@ interface PersonalPostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
     longitude: number;
     latitude: number;
 }

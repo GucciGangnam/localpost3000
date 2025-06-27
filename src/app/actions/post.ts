@@ -16,7 +16,7 @@ interface DbPost {
     category: string;
     longitude: number;
     latitude: number;
-    hotness: number;
+    hotness: string;
     distance: number;
 
 }
@@ -29,7 +29,7 @@ interface PostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
 }
 interface PersonalPostForClient {
     id: string;
@@ -39,7 +39,7 @@ interface PersonalPostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
     longitude: number;
     latitude: number;
 }
@@ -67,6 +67,10 @@ export const createPost = async (
     if (!userId) {
         return { success: false, error: "Unauthorized: No authenticated user." };
     }
+
+        const utcTimeNow = new Date().getTime();
+        const utcAsString = utcTimeNow.toString();
+
 
     let client;
     const longitude = coordinates.longitude;
@@ -97,14 +101,14 @@ export const createPost = async (
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
             `;
-            values = [userId, postContent, newPostTag, longitude, latitude, 1, imageUrl];
+            values = [userId, postContent, newPostTag, longitude, latitude, utcAsString, imageUrl];
         } else {
             query = `
             INSERT INTO posts (user_id, content_text, category, longitude, latitude, hotness)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *;
             `;
-            values = [userId, postContent, newPostTag, longitude, latitude, 1];
+            values = [userId, postContent, newPostTag, longitude, latitude, utcAsString];
         }
         const result = await client.query(query, values);
 
@@ -188,7 +192,6 @@ export const getAllPostsByNewest = async (
 ) => {
 
     let client;
-    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
 
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -303,7 +306,6 @@ export const getAllPostsByOldest = async (
     offset: number,
 ) => {
     let client;
-    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
 
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -418,8 +420,6 @@ export const getAllPostsByHot = async (
     offset: number
 ) => {
     let client;
-    console.log('Getting posts with filter:', filter, 'at coordinates:', longitude, latitude, 'with offset:', offset);
-
     // Validate coordinates
     if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
         return { success: false, error: 'Invalid coordinates provided' };
@@ -802,15 +802,15 @@ export const togglePinPost = async (postId: string) => {
         const checkResult = await client.query(checkQuery, [userId]);
 
         if (checkResult.rowCount === 0) {
-            // This means the user ID was not found in the database.
             client.release();
             return { success: false, error: 'User not found.' };
         }
 
-        const currentPinnedPosts: string[] = checkResult.rows[0].pinned_posts || []; // Ensure it's an array
+        const currentPinnedPosts: string[] = checkResult.rows[0].pinned_posts || [];
 
         let action: 'pinned' | 'unpinned';
         let updateQuery: string;
+        let hotnessQuery: string;
         let successMessage: string;
 
         if (currentPinnedPosts.includes(postId)) {
@@ -820,6 +820,12 @@ export const togglePinPost = async (postId: string) => {
                 SET pinned_posts = array_remove(pinned_posts, $1::uuid)
                 WHERE id = $2
                 RETURNING pinned_posts;
+            `;
+            hotnessQuery = `
+                UPDATE posts
+                SET hotness = (CAST(hotness AS BIGINT) - 3600000)::text
+                WHERE id = $1
+                RETURNING hotness;
             `;
             action = 'unpinned';
             successMessage = 'Post unpinned from your pin board!';
@@ -831,26 +837,39 @@ export const togglePinPost = async (postId: string) => {
                 WHERE id = $2
                 RETURNING pinned_posts;
             `;
+            hotnessQuery = `
+                UPDATE posts
+                SET hotness = (CAST(hotness AS BIGINT) + 3600000)::text
+                WHERE id = $1
+                RETURNING hotness;
+            `;
             action = 'pinned';
             successMessage = 'Post pinned to your pin board!';
         }
 
+        // Update user's pinned_posts
         const values = [postId, userId];
         const updateResult = await client.query(updateQuery, values);
+
+        // Update post's hotness
+        const hotnessResult = await client.query(hotnessQuery, [postId]);
+
         client.release();
 
-        // Check if the update actually affected a row (it should if user exists)
         if (updateResult.rowCount === 0) {
-            // This case should ideally not happen if checkResult.rowCount > 0
-            // unless there's a concurrency issue or user data changed immediately.
             console.error('Toggle operation affected 0 rows unexpectedly.');
             return { success: false, error: 'Failed to update pinned posts (no rows affected).' };
         }
 
-        revalidatePath('/'); // Revalidate paths that display pinned posts
-        console.log(`Post ${postId} ${action} for user ${userId}. New pinned posts:`, updateResult.rows[0].pinned_posts);
-
-        return { success: true, data: updateResult.rows[0], message: successMessage };
+        revalidatePath('/');
+        return { 
+            success: true, 
+            data: { 
+                pinnedPosts: updateResult.rows[0].pinned_posts, 
+                hotness: hotnessResult.rows[0]?.hotness 
+            }, 
+            message: successMessage 
+        };
 
     } catch (error: any) {
         console.error('Database error toggling post pin:', error);
@@ -932,10 +951,11 @@ export const toggleLikePost = async (postId: string) => {
             return { success: false, error: 'User not found.' };
         }
 
-        const userLikedPosts: string[] = userLikesResult.rows[0].liked_posts || []; // Default to empty array if somehow null (shouldn't be with DEFAULT '{}')
+        const userLikedPosts: string[] = userLikesResult.rows[0].liked_posts || [];
 
         let userUpdateQuery: string;
         let postUpdateQuery: string;
+        let hotnessUpdateQuery: string;
         let action: 'liked' | 'unliked';
         let successMessage: string;
 
@@ -953,6 +973,12 @@ export const toggleLikePost = async (postId: string) => {
                 WHERE id = $1
                 RETURNING like_count;
             `;
+            hotnessUpdateQuery = `
+                UPDATE posts
+                SET hotness = (CAST(hotness AS BIGINT) - 1800000)::text
+                WHERE id = $1
+                RETURNING hotness;
+            `;
             action = 'unliked';
             successMessage = 'Post unliked successfully!';
         } else {
@@ -969,6 +995,12 @@ export const toggleLikePost = async (postId: string) => {
                 WHERE id = $1
                 RETURNING like_count;
             `;
+            hotnessUpdateQuery = `
+                UPDATE posts
+                SET hotness = (CAST(hotness AS BIGINT) + 1800000)::text
+                WHERE id = $1
+                RETURNING hotness;
+            `;
             action = 'liked';
             successMessage = 'Post liked successfully!';
         }
@@ -976,7 +1008,6 @@ export const toggleLikePost = async (postId: string) => {
         // 2. Execute user's liked_posts update
         const userUpdateResult = await client.query(userUpdateQuery, [postId, userId]);
         if (userUpdateResult.rowCount === 0) {
-            // This case is unlikely if userLikesResult.rowCount was > 0, but good for robustness
             await client.query('ROLLBACK');
             client.release();
             return { success: false, error: 'Failed to update user\'s liked posts.' };
@@ -985,34 +1016,39 @@ export const toggleLikePost = async (postId: string) => {
         // 3. Execute post's like_count update
         const postUpdateResult = await client.query(postUpdateQuery, [postId]);
         if (postUpdateResult.rowCount === 0) {
-            // This means the post ID was not found in the posts table
-            await client.query('ROLLBACK'); // Rollback if post not found
+            await client.query('ROLLBACK');
             client.release();
             return { success: false, error: 'Post not found to update like count.' };
         }
 
-        await client.query('COMMIT'); // Commit the transaction
-        client.release(); // Release the client connection
+        // 4. Update post's hotness
+        const hotnessUpdateResult = await client.query(hotnessUpdateQuery, [postId]);
+        if (hotnessUpdateResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            client.release();
+            return { success: false, error: 'Failed to update post hotness.' };
+        }
 
-        // Revalidate paths that display the post or user's liked status
-        revalidatePath('/'); // For example, if posts are listed on the home page
-        // You might also want to revalidate a specific post's page: revalidatePath(`/posts/${postId}`);
+        await client.query('COMMIT');
+        client.release();
 
-        console.log(`Post ${postId} ${action} by user ${userId}. New like count: ${postUpdateResult.rows[0].like_count}`);
+        revalidatePath('/');
+
         return {
             success: true,
             message: successMessage,
             data: {
                 userLikedPosts: userUpdateResult.rows[0].liked_posts,
                 likeCount: postUpdateResult.rows[0].like_count,
-                action: action // Useful for frontend to know what happened
+                hotness: hotnessUpdateResult.rows[0].hotness,
+                action: action
             }
         };
 
     } catch (error: any) {
         console.error('Database error toggling like status:', error);
         if (client) {
-            await client.query('ROLLBACK'); // Rollback on any error
+            await client.query('ROLLBACK');
             client.release();
         }
         return { success: false, error: error.message || 'Failed to toggle like status.' };

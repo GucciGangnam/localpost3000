@@ -28,7 +28,7 @@ interface PostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
 }
 
 interface CommentForClient {
@@ -39,7 +39,6 @@ interface CommentForClient {
     commentText: string;
     createdAt: string;
     likeCount: number;
-    // postId: string; // I dont think teh clien tneeds this...?
 }
 
 

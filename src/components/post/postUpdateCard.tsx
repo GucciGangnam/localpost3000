@@ -34,7 +34,7 @@ interface PostForClient {
     content: string;
     attachment: string | null;
     category: string;
-    hotness: number;
+    hotness: string;
 }
 
 interface PostUpdateCardProps {

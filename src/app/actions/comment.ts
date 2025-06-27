@@ -30,7 +30,6 @@ interface CommentForClient {
 
 // CREATE
 export const createComment = async (postId: string, commentText: string): Promise<{ success: boolean, error?: string }> => {
-
     // 1. Get the authenticated user ID on the server
     const { userId } = await auth();
 
@@ -43,27 +42,48 @@ export const createComment = async (postId: string, commentText: string): Promis
 
     try {
         client = await pool.connect();
-        const query = `
+        // Start a transaction
+        await client.query('BEGIN');
+
+        // Insert the comment
+        const insertCommentQuery = `
             INSERT INTO comments (user_id, comment_text, post_id)
             VALUES ($1, $2, $3)
             RETURNING id, user_id, comment_text, created_at, like_count, post_id;
         `;
-        const values = [userId, commentText, postId];
-        const result = await client.query<DBComment>(query, values);
+        const insertCommentValues = [userId, commentText, postId];
+        const result = await client.query<DBComment>(insertCommentQuery, insertCommentValues);
         const comment = result.rows[0];
+
         if (!comment) {
+            await client.query('ROLLBACK');
             revalidatePath('/');
             return { success: false, error: "Failed to create comment." };
-        } else {
-            revalidatePath(`/post/${postId}`);
-            return {
-                success: true
-            }
         }
+
+        // Increment the hotness column for the post by 2800000
+        const updateHotnessQuery = `
+            UPDATE posts
+            SET hotness = (hotness::bigint + 2800000)::text
+            WHERE id = $1;
+        `;
+        await client.query(updateHotnessQuery, [postId]);
+
+        // Commit transaction
+        await client.query('COMMIT');
+        revalidatePath(`/post/${postId}`);
+        return { success: true };
     } catch (error) {
+        if (client) {
+            await client.query('ROLLBACK');
+        }
         console.error('Error creating comment:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
         return { success: false, error: errorMessage };
+    } finally {
+        if (client) {
+            client.release();
+        }
     }
 }
 // Cgeck if comment i salready liekd 
@@ -271,16 +291,19 @@ export const deleteComment = async (commentId: string): Promise<{ success: boole
     let client;
     try {
         client = await pool.connect();
-        // Check if the comment exists and belongs to the user
+        // Start a transaction
+        await client.query('BEGIN');
+        // Check if the comment exists and belongs to the user, and get post_id
         const checkQuery = `
-            SELECT id, user_id
+            SELECT id, user_id, post_id
             FROM comments
             WHERE id = $1 AND user_id = $2;
         `;
         const checkValues = [commentId, userId];
-        const checkResult = await client.query<DBComment>(checkQuery, checkValues);
+        const checkResult = await client.query<{ id: string, user_id: string, post_id: string }>(checkQuery, checkValues);
         const comment = checkResult.rows[0];
         if (!comment) {
+            await client.query('ROLLBACK');
             return { success: false, error: "Comment not found or does not belong to the user." };
         }
         // Delete the comment
@@ -289,9 +312,21 @@ export const deleteComment = async (commentId: string): Promise<{ success: boole
             WHERE id = $1;
         `;
         await client.query(deleteQuery, [commentId]);
+        // Decrement the hotness column for the post by 2800000
+        const updateHotnessQuery = `
+            UPDATE posts
+            SET hotness = (hotness::bigint - 2800000)::text
+            WHERE id = $1;
+        `;
+        await client.query(updateHotnessQuery, [comment.post_id]);
+        // Commit transaction
+        await client.query('COMMIT');
         revalidatePath(`/post/${comment.post_id}`);
         return { success: true };
     } catch (error) {
+        if (client) {
+            await client.query('ROLLBACK');
+        }
         console.error('Error deleting comment:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
         return { success: false, error: errorMessage };

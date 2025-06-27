@@ -1,6 +1,25 @@
 'use client'
 // IMPORT
-import { Heart, Waypoints, Pin } from "lucide-react"
+import { Heart, Waypoints, Pin, Ellipsis, Radio, FlagTriangleRight, Tag, CircleX } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // actions
 import { checkPostLiked } from "@/app/actions/post"
@@ -45,11 +64,16 @@ export default function PostButtons({ id }: { id: string }) {
     return (
         <div className="flex gap-2 justify-evenly items-center mb-2 rounded-md">
 
-            <button className="cursor-pointer bg-muted text-muted-foreground flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange transition-colors w-full">
-                <Waypoints
-                    size={20}
-                />
-            </button>
+            <DropdownMenu>
+                <DropdownMenuTrigger className="cursor-pointer bg-muted text-muted-foreground flex justify-center items-center gap-2 px-4 py-2 rounded-md hover:bg-orange hover:text-background transition-colors w-full focus:outline-0"><Ellipsis /></DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-muted">
+                    <DropdownMenuLabel>More actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="hover:!bg-input"><FlagTriangleRight/>Report</DropdownMenuItem>
+                    <DropdownMenuItem className="hover:!bg-input"><Tag/>Dispute tag</DropdownMenuItem>
+                    <DropdownMenuItem className="hover:!bg-input"><CircleX/>Close</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
 
 
             <button

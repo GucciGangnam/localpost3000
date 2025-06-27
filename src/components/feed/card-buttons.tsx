@@ -1,6 +1,6 @@
 'use cient'
 // IMPORTS 
-import { Heart, MessageSquare, Waypoints, Pin, Ellipsis } from "lucide-react"
+import { Heart, MessageSquare, Pin, Ellipsis, FlagTriangleRight, CircleX, Tag } from "lucide-react"
 import { useState, useEffect } from "react";
 import { checkPostPinned } from "@/app/actions/post";
 import { toggleLikePost } from "@/app/actions/post";
@@ -116,18 +116,11 @@ export default function CardButtons({ postID }: CardButtonsProps) {
                 <DropdownMenuContent className="bg-muted">
                     <DropdownMenuLabel>More actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="hover:!bg-input">Report</DropdownMenuItem>
-                    <DropdownMenuItem className="hover:!bg-input">Hide</DropdownMenuItem>
-                    <DropdownMenuItem className="hover:!bg-input">Close</DropdownMenuItem>
+                    <DropdownMenuItem className="hover:!bg-input"><FlagTriangleRight/>Report</DropdownMenuItem>
+                    <DropdownMenuItem className="hover:!bg-input"><Tag/>Dispute tag</DropdownMenuItem>
+                    <DropdownMenuItem className="hover:!bg-input"><CircleX/>Close</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-
-            <button className="rounded-md p-1 transition-colors duration-200 flex justify-center items-center text-input hover:text-orange">
-                <Waypoints
-                    size={15}
-
-                />
-            </button>
 
             <button className="rounded-md p-1 transition-colors duration-200 flex justify-center items-center text-input hover:text-orange">
                 <MessageSquare
