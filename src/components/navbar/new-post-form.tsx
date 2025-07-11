@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { Textarea } from "@/components/ui/textarea"
 import { Speech, NewspaperIcon, Tag, Calendar1, CircleSlash2, Info, ImageUp } from "lucide-react";
 import React, { useRef, useState } from 'react';
+import Image from "next/image";
 import {
     Select,
     SelectContent,
@@ -132,16 +133,25 @@ export default function NewPostForm() {
                     id: submitToastId
                 });
             }
-        } catch (error: any) {
-            if (error && typeof error === 'object' && error.message && error.message.includes('NEXT_REDIRECT')) {
-                throw error;
+        } catch (error: unknown) { // Change 'any' to 'unknown'
+            // Type guard to check if 'error' is an instance of Error
+            if (error instanceof Error) {
+                if (error.message.includes('NEXT_REDIRECT')) {
+                    throw error;
+                }
+                console.error("Error in submitNewPost:", error);
+                toast.error("An unexpected error occurred.", {
+                    description: error.message || "Unknown error",
+                    id: submitToastId
+                });
+            } else {
+                // Handle cases where 'error' is not an Error object
+                console.error("An unexpected non-Error object was thrown:", error);
+                toast.error("An unexpected error occurred.", {
+                    description: "Unknown error", // We can't safely access 'message' here
+                    id: submitToastId
+                });
             }
-
-            console.error("Error in submitNewPost:", error);
-            toast.error("An unexpected error occurred.", {
-                description: error.message || "Unknown error",
-                id: submitToastId
-            });
         } finally {
             setIsSubmitting(false);
         }
@@ -152,12 +162,15 @@ export default function NewPostForm() {
     return (
         <DialogContent aria-description={"New post"} className="flex">
             <div id="left" className="min-w-[35px]">
-                <img
-                    src={userImage}
-                    alt="Avatar"
-                    className="rounded-full w-[35px] h-[35px]"
-                    style={{ aspectRatio: "1/1", borderRadius: '100%' }}
-                />
+                {userImage && ( // Only render the Image component if userImage is not undefined, null, or an empty string
+                    <Image
+                        src={userImage}
+                        alt="Avatar"
+                        width={35}
+                        height={35}
+                        className="rounded-full"
+                    />
+                )}
             </div>
             <div id="right" className="grow flex flex-col gap-2 min-w-0">
                 <div id="top" className="flex items-center gap-5">
@@ -215,10 +228,14 @@ export default function NewPostForm() {
                             disabled={isSubmitting}
                         >
                             {previewImage ? (
-                                <img
+                                <Image
                                     src={previewImage}
                                     alt="Preview"
-                                    className="object-cover rounded-sm w-full h-full"
+                                    layout="fill" // Use layout="fill" to make the image fill its parent
+                                    objectFit="cover" // This replaces your "object-cover" Tailwind class
+                                    className="rounded-sm" // Keep your Tailwind classes that apply to the image itself
+                                // The parent container of this Image component needs a defined size and position: relative
+                                // For example: <div className="relative w-full h-full">... Image component ...</div>
                                 />
                             ) : (
                                 <ImageUp className="inline" size={16} />

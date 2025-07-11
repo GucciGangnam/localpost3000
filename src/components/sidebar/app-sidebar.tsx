@@ -1,7 +1,6 @@
 
 
 import { Home, LogOut, NewspaperIcon, Speech, Calendar1, Tag, Gamepad2, Pin, Signpost, CircleUserRound } from "lucide-react"
-import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 
 
@@ -22,7 +21,6 @@ import UserSpace from "./user-space"
 
 // CLERK
 import {
-    SignInButton,
     SignUpButton,
     SignedIn,
     SignedOut,

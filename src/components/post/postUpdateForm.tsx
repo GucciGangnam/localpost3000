@@ -1,9 +1,7 @@
 'use client'
 
 // IMPORTS 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { useUser } from '@clerk/nextjs';
 import { CreateUpdate } from '@/app/actions/update'
 import { toast } from "sonner"
 import { useState } from "react";
@@ -26,19 +24,16 @@ export default function PostUpdateForm({ postId }: PostIDFormProps) {
     const [buttonText, setButtonText] = useState('Post Update');
 
     // handlers 
-    interface HandlePostUpdateEvent extends React.FormEvent<HTMLFormElement> {} // Renamed to avoid confusion with `extends`
-
-    const handlePostUpdate = async (e: HandlePostUpdateEvent): Promise<void> => {
+    const handlePostUpdate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault(); // Always prevent default form submission
-    
+
         setButtonText('Posting...'); // Show loading state on button
-    
+
         const form = e.currentTarget; // More reliable way to get the form element from the event
-        // const form = document.querySelector('form'); // This works, but e.currentTarget is more direct
-    
+
         const formData = new FormData(form);
         const updateText = formData.get('updateText') as string;
-    
+
         // Basic validation
         if (!updateText || updateText.trim() === '') {
             setButtonText('Post Update'); // Reset button text
@@ -49,14 +44,14 @@ export default function PostUpdateForm({ postId }: PostIDFormProps) {
             setButtonText('Post Update'); // Reset button text
             return;
         }
-    
+
         // Show a loading toast
         const loadingToastId = toast.loading('Creating post update...');
-    
+
         try {
             // Call your server action with the correct arguments
             const result = await CreateUpdate(postId, updateText);
-    
+
             // Handle the response from the server action
             if (result.success) {
                 toast.success(result.message || 'Post update created successfully!', { id: loadingToastId });

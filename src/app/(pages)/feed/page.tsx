@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react'; // <--- Import useMemo
 import Card from "@/components/feed/card";
 import NoPostsFound from "@/components/feed/no-posts-found";
 import { getAllPostsByNewest, getAllPostsByOldest, getAllPostsByHot } from "@/app/actions/post";
@@ -34,11 +34,13 @@ export default function FeedPage() {
     const filter = searchParams.get('filter') || 'all';
     const sort = searchParams.get('sort') || 'hot';
 
-    const filters = ['all', 'news', 'discuss', 'event', 'commercial'];
-    const sorts = ['hot', 'newest', 'oldest'];
+    // Use useMemo to ensure filters and sorts arrays have stable references
+    const filters = useMemo(() => ['all', 'news', 'discuss', 'event', 'commercial'], []);
+    const sorts = useMemo(() => ['hot', 'newest', 'oldest'], []);
 
     // Get user location on mount
     useEffect(() => {
+        console.log("running useEffect for user location");
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -57,57 +59,9 @@ export default function FeedPage() {
         }
     }, []);
 
-    // Fetch initial posts function 
-    const fetchPosts = async () => {
-        if (!userLocation) return;
-        // Validate params
-        if (!filters.includes(filter) || !sorts.includes(sort)) {
-            router.push('/feed?filter=all&sort=hot');
-            return;
-        }
-        setLoading(true);
-        try {
-            let response;
-            if (sort === 'newest') {
-                response = await getAllPostsByNewest(
-                    filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
-                    userLocation.lng,
-                    userLocation.lat,
-                    0
-                );
-            } else if (sort === 'oldest') {
-                response = await getAllPostsByOldest(
-                    filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
-                    userLocation.lng,
-                    userLocation.lat,
-                    0
-                );
-            } else {
-                response = await getAllPostsByHot(
-                    filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
-                    userLocation.lng,
-                    userLocation.lat,
-                    0
-                );
-            }
-            setPosts(response.data ?? []);
-            setOffset(response.data ? response.data.length : 0); // Increment pagination for next fetch
-            if (response.data && response.data.length < 20) {
-                setAllPostsFetched(true); // No more posts to fetch
-            }
-            
-
-        } catch (error) {
-            console.error('Error fetching posts:', error);
-            setPosts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     // Fetch 20 more function 
-        const fetchMorePosts = async () => {
-            setFetchingmore(true);
+    const fetchMorePosts = async () => {
+        setFetchingmore(true);
         if (!userLocation) return;
         // Validate params
         if (!filters.includes(filter) || !sorts.includes(sort)) {
@@ -160,8 +114,52 @@ export default function FeedPage() {
     useEffect(() => {
         setOffset(0); // Reset offset when filter or sort changes
         setAllPostsFetched(false); // Reset allPostsFetched when filter or sort changes
+        const fetchPosts = async () => {
+            if (!userLocation) return;
+            // Validate params
+            if (!filters.includes(filter) || !sorts.includes(sort)) {
+                router.push('/feed?filter=all&sort=hot');
+                return;
+            }
+            setLoading(true);
+            try {
+                let response;
+                if (sort === 'newest') {
+                    response = await getAllPostsByNewest(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat,
+                        0
+                    );
+                } else if (sort === 'oldest') {
+                    response = await getAllPostsByOldest(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat,
+                        0
+                    );
+                } else {
+                    response = await getAllPostsByHot(
+                        filter as 'all' | 'news' | 'discuss' | 'event' | 'commercial',
+                        userLocation.lng,
+                        userLocation.lat,
+                        0
+                    );
+                }
+                setPosts(response.data ?? []);
+                setOffset(response.data ? response.data.length : 0); // Increment pagination for next fetch
+                if (response.data && response.data.length < 20) {
+                    setAllPostsFetched(true); // No more posts to fetch
+                }
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+                setPosts([]);
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchPosts();
-    }, [userLocation, filter, sort, router]);
+    }, [userLocation, filter, sort, router, filters, sorts]); // Now filters and sorts have stable references
 
     if (loading) {
         return <Loading />

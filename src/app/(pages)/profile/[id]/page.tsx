@@ -1,31 +1,42 @@
 import { notFound } from 'next/navigation';
 import { getUserInfo } from '@/app/actions/user';
-import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
-import { Button } from '@/components/ui/button';
-import { BadgeCheck, Cake, Signpost, Ellipsis } from 'lucide-react';
+// Ensure these imports are correct based on your project structure
+import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'; // Assuming @radix-ui/react-avatar is correctly installed and configured
+import { BadgeCheck, Cake, Signpost, Ellipsis } from 'lucide-react'; // Assuming lucide-react is correctly installed
 
+// IMPORTANT: Updated PageProps interface.
+// 'params' is now typed as a Promise that resolves to an object with an 'id' string.
 interface PageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export default async function Page({ params }: PageProps) {
-    const id = await params?.id;
-    if (!id) return notFound();
+    // IMPORTANT: Await the 'params' Promise first to get the actual object.
+    // Then, destructure 'id' from the resolved object.
+    const { id } = await params;
+
+    // Check if id exists. If not, return notFound().
+    if (!id) {
+        return notFound();
+    }
 
     // Fetch user data based on the ID
     const user = await getUserInfo(id);
-    console.log(user);
-    if (!user) {
+    console.log(user); // Keep this for debugging if needed
+
+    // Check if user or user.data is null/undefined before proceeding
+    if (!user || !user.data) {
         return <div className="p-4">User not found</div>;
     }
 
     return (
-        <div className="p-4 flex  items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 max-h-screen ">
+        <div className="p-4 flex items-center flex-col sm:flex-row sm:items-start gap-8 mt-4 max-h-screen">
 
-            <div id="Left" className=" w-full flex flex-col gap-8 max-w-130">
+            <div id="Left" className="w-full flex flex-col gap-8 max-w-130"> {/* Consider using Tailwind's max-w-xs, max-w-sm, etc. for responsiveness */}
 
                 <div id="NameAndPhoto" className="rounded-md flex">
                     <div id="Left" className="flex items-center gap-4">
+                        {/* Ensure Avatar components are correctly implemented and styled */}
                         <Avatar className="w-20 h-20 rounded-full overflow-hidden border-2 border-muted">
                             <AvatarImage src={user.data.avatar} className="w-full h-full object-cover rounded-full" />
                             <AvatarFallback className="w-full h-full flex items-center justify-center rounded-full bg-muted">
@@ -39,14 +50,15 @@ export default async function Page({ params }: PageProps) {
                     </div>
                 </div>
 
-                <div id="Bio" className=" rounded-md flex gap-2 flex-col">
+                <div id="Bio" className="rounded-md flex gap-2 flex-col">
                     <p className="whitespace-pre-wrap">{user.data.bio}</p>
                 </div>
 
                 <div id="buttos-container" className="flex flex-col gap-2">
-
-                    <button className="bg-muted hover:bg-input text-muted-foreground rounded-md p-2 flex justify-center items-center gap-2"><Ellipsis size={20} color="var(--muted-foreground)" /></button>
-
+                    {/* Ensure button styling is consistent with your design system */}
+                    <button className="bg-muted hover:bg-input text-muted-foreground rounded-md p-2 flex justify-center items-center gap-2">
+                        <Ellipsis size={20} color="var(--muted-foreground)" />
+                    </button>
                 </div>
 
             </div>

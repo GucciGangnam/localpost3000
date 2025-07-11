@@ -6,12 +6,10 @@ import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "l
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import Image from "next/image";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
@@ -150,15 +148,24 @@ export default function PostCard({ post }: { post: PostForClient }) {
                                             } ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''}`}
                                         style={{ cursor: 'pointer' }} // Indicate clickable behavior
                                     >
-                                        <div className="absolute text-muted text-center w-full hidden sm:block">Click image to view</div>  <img src={post.attachment} alt="Attachment" className="rounded-md" />
+                                        <div className="absolute text-muted text-center w-full hidden sm:block">Click image to view</div>
+                                        <Image
+                                            src={post.attachment}
+                                            alt="Attachment"
+                                            width={800} // <<< You NEED to provide a width
+                                            height={600} // <<< You NEED to provide a height
+                                            className="rounded-md"
+                                        />
                                     </div>
                                 </DialogTrigger>
-                                <DialogContent className="w-fit h-full max-h-full flex flex-col justify-center items-center">
+                                <DialogContent className="w-screen max-w-[90vw] max-h-[90vh] h-fit flex flex-col justify-center items-center p-4 shadow-none">
                                     <DialogTitle></DialogTitle>
-                                    <img
+                                    <Image
                                         src={post.attachment}
                                         alt="Full screen attachment"
-                                        className="max-w-full max-h-full object-contain"
+                                        className="object-contain w-full h-full max-w-[90vw] max-h-[90vh]"
+                                        width={800} // <<< You NEED to provide a width
+                                        height={600} // <<< You NEED to provide a height
                                     />
                                 </DialogContent>
                             </Dialog>

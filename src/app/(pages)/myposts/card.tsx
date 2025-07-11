@@ -3,6 +3,7 @@
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Image from "next/image"
 
 
 interface PersonalPostForClient {
@@ -95,7 +96,13 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                             className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
                                 }`}
                         >
-                            <img src={post.attachment} alt="Attachment" className="rounded-md" />
+                            <Image
+                                src={post.attachment}
+                                alt="Attachment"
+                                width={500} // BUT WE CANT KNOW THE SIZE OF THE IMAGE
+                                height={300} // BUT WE CANT KNOW THE SIZE OF THE IMAGE
+                                className="rounded-md"
+                            />
                         </div>
                     }
                 </div>
@@ -115,9 +122,9 @@ export default function Card({ post }: { post: PersonalPostForClient }) {
                     >
                         Click to see where you placed this post
                     </a>
-                    <a 
-                    href={`/post/${post.id}`}
-                    className=" rounded-md px-2 py-1 text-center text-background bg-orange opacity-50 hover:opacity-100 hover:bg-orange cursor-pointer">
+                    <a
+                        href={`/post/${post.id}`}
+                        className=" rounded-md px-2 py-1 text-center text-background bg-orange opacity-50 hover:opacity-100 hover:bg-orange cursor-pointer">
                         Go to post
                     </a>
                 </div>

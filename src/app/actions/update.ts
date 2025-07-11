@@ -2,7 +2,6 @@
 
 // IMPORTS 
 import pool from "@/lib/db"
-import { clerkClient } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { auth } from "@clerk/nextjs/server"
 
@@ -96,12 +95,20 @@ export const getPostUpdates = async (postId: string) => {
         }
 
         return { success: true, data: updatesArray }; // Return success and the array of updates
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown for caught errors
         console.error('Database error getting post updates:', error); // More specific error message
+
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get post updates' }; // Return failure and error
+
+        // Safely check if error is an instance of Error to access its message property
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get post updates' };
+        } else {
+            // Handle cases where error might not be an Error object (e.g., a string or other thrown value)
+            return { success: false, error: 'An unknown error occurred while getting post updates' };
+        }
     }
 }
 

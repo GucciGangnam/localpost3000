@@ -68,8 +68,8 @@ export const createPost = async (
         return { success: false, error: "Unauthorized: No authenticated user." };
     }
 
-        const utcTimeNow = new Date().getTime();
-        const utcAsString = utcTimeNow.toString();
+    const utcTimeNow = new Date().getTime();
+    const utcAsString = utcTimeNow.toString();
 
 
     let client;
@@ -93,7 +93,7 @@ export const createPost = async (
 
 
         let query: string;
-        let values: any[];
+        let values: (string | number | null)[];
 
         if (imageUrl) {
             query = `
@@ -124,12 +124,17 @@ export const createPost = async (
         client.release();
         revalidatePath('/');
         return { success: true, data: result.rows[0] }; // Return success and data
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Database error creating post:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to create post in database' }; // Return failure and error
+        // Type narrowing for error
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to create post in database' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while creating the post.' };
     }
 };
 
@@ -151,7 +156,7 @@ export const deletePost = async (postId: string) => {
         `;
         const values = [postId, userId];
         const result = await client.query(query, values);
-        // delete all commenst wjhere teh post_id is the postId
+        // delete all commenst wjere teh post_id is the postId
         const deleteCommentsQuery = `
             DELETE FROM comments WHERE post_id = $1;
         `;
@@ -173,12 +178,17 @@ export const deletePost = async (postId: string) => {
         // Revalidate the path to update the cache
         revalidatePath('/');
         return { success: true, data: result.rows[0] }; // Return success and data
-    } catch (error: any) {
+    } catch (error: unknown) { // Change 'any' to 'unknown'
         console.error('Database error deleting post:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to delete post' }; // Return failure and error
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to delete post' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while deleting the post.' };
     }
 }
 
@@ -207,14 +217,12 @@ export const getAllPostsByNewest = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($1)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
+                        cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                         sin(radians($1)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts
                 WHERE (6371 * acos(
-                    cos(radians($1)) * cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
+                    cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY created_at DESC
@@ -224,15 +232,13 @@ export const getAllPostsByNewest = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts 
                 WHERE category = $1 
                     AND (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY created_at DESC
@@ -290,12 +296,17 @@ export const getAllPostsByNewest = async (
         client.release();
         return { success: true, data: posts };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get posts' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get posts' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while getting posts.' };
     }
 }
 // THIS GETS ALL POSTS BY OLDEST
@@ -321,14 +332,12 @@ export const getAllPostsByOldest = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($1)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
+                        cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                         sin(radians($1)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts
                 WHERE (6371 * acos(
-                    cos(radians($1)) * cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
+                    cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY created_at ASC
@@ -338,15 +347,13 @@ export const getAllPostsByOldest = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts 
                 WHERE category = $1 
                     AND (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY created_at ASC
@@ -404,12 +411,17 @@ export const getAllPostsByOldest = async (
         client.release();
         return { success: true, data: posts };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get posts' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get posts' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while getting posts.' };
     }
 }
 // THIS GETS ALL POSTS BY HOTNESS
@@ -434,14 +446,12 @@ export const getAllPostsByHot = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($1)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
+                        cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                         sin(radians($1)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts
                 WHERE (6371 * acos(
-                    cos(radians($1)) * cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
+                    cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + 
                     sin(radians($1)) * sin(radians(latitude))
                 )) <= $3
                 ORDER BY hotness DESC
@@ -451,15 +461,13 @@ export const getAllPostsByHot = async (
             query = `
                 SELECT *, 
                     (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) AS distance
                 FROM posts 
                 WHERE category = $1 
                     AND (6371 * acos(
-                        cos(radians($2)) * cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
+                        cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + 
                         sin(radians($2)) * sin(radians(latitude))
                     )) <= $4
                 ORDER BY hotness DESC
@@ -517,12 +525,17 @@ export const getAllPostsByHot = async (
         client.release();
         return { success: true, data: posts };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get posts' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get posts' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while getting posts.' };
     }
 }
 // GET PERSONAL POSTS (for other users profile page) -- - - -- DONT THINK THIS IS IN USE
@@ -582,12 +595,17 @@ export const getPersonalPosts = async () => {
         client.release();
         return { success: true, data: posts, postCount: { postsMade, postsAvailable } };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting personal posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get personal posts' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get personal posts' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while getting personal posts.' };
     }
 }
 
@@ -633,14 +651,18 @@ export const getDetailedPersonalPosts = async () => {
         client.release();
         return { success: true, data: posts };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting detailed personal posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get detailed personal posts' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get detailed personal posts' };
+        }
+        // Fallback for cases where the error is not an instance of Error
+        return { success: false, error: 'An unknown error occurred while getting detailed personal posts.' };
     }
-
 }
 
 // GET A USERS PINNED POSTS
@@ -725,12 +747,17 @@ export const getPinnedPosts = async () => {
         );
         client.release();
         return { success: true, data: posts }; // Return success and posts data
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting pinned posts or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get pinned posts' }; // Return failure and error
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get pinned posts' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while getting pinned posts.' };
     }
 }
 
@@ -768,12 +795,17 @@ export const getSinglePost = async (postId: string) => {
         };
         client.release();
         return { success: true, data: post }; // Return success and post data
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting single post or Clerk API error:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get single post' }; // Return failure and error
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get single post' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while getting the single post.' };
     }
 };
 
@@ -862,21 +894,27 @@ export const togglePinPost = async (postId: string) => {
         }
 
         revalidatePath('/');
-        return { 
-            success: true, 
-            data: { 
-                pinnedPosts: updateResult.rows[0].pinned_posts, 
-                hotness: hotnessResult.rows[0]?.hotness 
-            }, 
-            message: successMessage 
+        return {
+            success: true,
+            data: {
+                pinnedPosts: updateResult.rows[0].pinned_posts,
+                hotness: hotnessResult.rows[0]?.hotness
+            },
+            message: successMessage,
+            action: action
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error toggling post pin:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to toggle post pin.' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to toggle post pin.' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while toggling the post pin.' };
     }
 };
 // Check if user has pinned post and return boolean
@@ -913,12 +951,13 @@ export const checkPostPinned = async (postID: string): Promise<boolean> => {
 
         // Return true if postID is in the pinned posts array
         return pinnedPosts.includes(postID);
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error checking pinned post:', error);
         // Ensure client is released even if an error occurs during the query
         if (client) {
             client.release();
         }
+        // No need for error.message here, as the function returns a boolean
         return false; // Return false in case of an error
     }
 };
@@ -985,21 +1024,21 @@ export const toggleLikePost = async (postId: string) => {
             // Post is not liked by the user, so like it
             userUpdateQuery = `
                 UPDATE users
-                SET liked_posts = array_append(liked_posts, $1::uuid)
+                SET liked_posts = array_append(pinned_posts, $1::uuid)
                 WHERE id = $2
                 RETURNING liked_posts;
-            `;
-            postUpdateQuery = `
-                UPDATE posts
-                SET like_count = like_count + 1
-                WHERE id = $1
-                RETURNING like_count;
             `;
             hotnessUpdateQuery = `
                 UPDATE posts
                 SET hotness = (CAST(hotness AS BIGINT) + 1800000)::text
                 WHERE id = $1
                 RETURNING hotness;
+            `;
+            postUpdateQuery = `
+                UPDATE posts
+                SET like_count = like_count + 1
+                WHERE id = $1
+                RETURNING like_count;
             `;
             action = 'liked';
             successMessage = 'Post liked successfully!';
@@ -1045,13 +1084,18 @@ export const toggleLikePost = async (postId: string) => {
             }
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error toggling like status:', error);
         if (client) {
             await client.query('ROLLBACK');
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to toggle like status.' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to toggle like status.' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while toggling like status.' };
     }
 };
 // CHECK IF USER LIKED TEH POST
@@ -1091,13 +1135,18 @@ export const checkPostLiked = async (postId: string): Promise<boolean> => {
 
         // Return true if postId is in the likedPosts array, false otherwise
         return likedPosts.includes(postId);
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error checking liked post:', error);
         // Ensure client is released even if an error occurs during the query
         if (client) {
             client.release();
         }
         // In case of any database error, assume the post is not liked
+        // Type narrowing for console.error, not for the return value
+        if (error instanceof Error) {
+            // Log the specific error message if it's an Error object
+            console.error('Specific error message:', error.message);
+        }
         return false;
     }
 };

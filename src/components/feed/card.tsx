@@ -7,6 +7,7 @@ import CardButtons from "./card-buttons"
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { isUserVerified } from "@/app/actions/user";
+import Image from "next/image";
 
 interface PostForClient {
     id: string;
@@ -138,7 +139,13 @@ export default function Card({ post }: { post: PostForClient }) {
                             className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
                                 }`}
                         >
-                            <img src={post.attachment} alt="Attachment" className="rounded-md" />
+                            <Image
+                                src={post.attachment}
+                                alt="Attachment"
+                                width={500} // BUT WE CANT KNOW THE SIZE OF THE IMAGE
+                                height={300} // BUT WE CANT KNOW THE SIZE OF THE IMAGE
+                                className="rounded-md"
+                            />
                         </div>
                     }
                 </div>

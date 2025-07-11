@@ -23,12 +23,17 @@ export const createUser = async (firstname: string, lastname: string, userId: st
         const result = await client.query(query, values);
         client.release();
         return { success: true, data: result.rows[0] }; // Return success and data
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error creating user:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to create user in database' }; // Return failure and error
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to create user in database' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while creating the user.' };
     }
 };
 
@@ -56,23 +61,31 @@ export const getUserInfo = async (userId: string) => {
             const clientInstance = await clerkClient();
             const clerkUser = await clientInstance.users.getUser(userId);
             avatarUrl = clerkUser?.imageUrl || null;
-        } catch (clerkError) {
+        } catch (clerkError: unknown) { // Changed 'any' to 'unknown' for clerkError as well
             console.warn("Could not fetch avatar from Clerk:", clerkError);
+            if (clerkError instanceof Error) {
+                console.warn("Clerk error message:", clerkError.message);
+            }
         }
 
-        return { 
-            success: true, 
-            data: { 
-                ...result.rows[0], 
-                avatar: avatarUrl 
-            } 
+        return {
+            success: true,
+            data: {
+                ...result.rows[0],
+                avatar: avatarUrl
+            }
         };
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error getting user info:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to get user info from database' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to get user info from database' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while getting user info.' };
     }
 };
 
@@ -93,12 +106,17 @@ export const isUserVerified = async (userId: string) => {
         }
 
         return { success: true, verified: result.rows[0].verified };
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error('Database error checking user verification:', error);
         if (client) {
             client.release();
         }
-        return { success: false, error: error.message || 'Failed to check user verification status' };
+        // Type narrowing to safely access error properties
+        if (error instanceof Error) {
+            return { success: false, error: error.message || 'Failed to check user verification status' };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: 'An unknown error occurred while checking user verification status.' };
     }
 };
 
@@ -129,9 +147,14 @@ export const updateBio = async (bio: string) => {
         await client.query(query, values);
         revalidatePath("/");
         return { success: true, message: "Bio updated successfully." };
-    } catch (error: any) {
+    } catch (error: unknown) { // Changed 'any' to 'unknown'
         console.error("Error updating bio:", error);
-        return { success: false, error: "Failed to update bio." };
+        // Type narrowing to safely access error properties for detailed logging
+        if (error instanceof Error) {
+            return { success: false, error: error.message || "Failed to update bio." };
+        }
+        // Fallback for non-Error objects
+        return { success: false, error: "An unknown error occurred while updating bio." };
     } finally {
         if (client) {
             client.release(); // Release the client back to the pool

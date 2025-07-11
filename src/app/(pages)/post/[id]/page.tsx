@@ -18,6 +18,9 @@ import { getPostUpdates } from "@/app/actions/update";
 interface PageParams {
     id: string;
 }
+interface PostPageProps {
+    params: Promise<PageParams>; // params is a Promise that resolves to PageParams
+}
 
 interface PostForClient {
     id: string;
@@ -42,7 +45,7 @@ interface CommentForClient {
 }
 
 
-export default async function Page({ params }: { params: PageParams }) {
+export default async function Page({ params }: PostPageProps) {
     const { userId } = await auth();
     const { id } = await params; // Get the id from the params object
     // Fetch the post data using the id

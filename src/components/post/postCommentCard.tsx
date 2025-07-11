@@ -89,8 +89,8 @@ export default function PostCommentCard(comment: CommentForClient) {
         success: boolean;
         error?: string;
     }
-    interface ToggleLikeEvent extends React.MouseEvent<HTMLButtonElement> { }
-    const handleToggleLike = async (e: ToggleLikeEvent): Promise<void> => {
+    // Remove the ToggleLikeEvent interface entirely
+    const handleToggleLike = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
         e.preventDefault();
         setCommentLiked(!commentLiked);
         const response: ToggleLikeCommentResponse = await toggleLikeComment(comment.id);

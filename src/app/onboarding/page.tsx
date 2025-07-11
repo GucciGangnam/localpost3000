@@ -37,12 +37,11 @@ export default async function Page() {
         } else {
             console.error("User creation failed:", response.error);
             // Optionally display an error message to the user
-            if (response.error.includes("duplicate key")) {
-                // programatically navihate to /feed and return null
+            if (typeof response.error === 'string' && response.error.includes("duplicate key")) {
                 console.log("User already exists, navigating to feed...");
                 return redirect("/feed");
             }
-            return <div>There has been a connection issue, please reload teh page</div>;
+            return null;
         }
     }
 }

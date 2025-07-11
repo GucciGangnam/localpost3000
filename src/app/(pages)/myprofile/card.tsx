@@ -1,6 +1,7 @@
 //  IMPORTS 
 import { Verified, NewspaperIcon, Speech, Calendar1, Tag, CircleSlash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Image from "next/image";
 
 
 interface PostForClient {
@@ -116,7 +117,13 @@ export default function Card({ post }: { post: PostForClient }) {
                             className={`grow ${post.attachment ? 'flex items-center bg-cover rounded-md' : ''} ${post.attachment ? 'sm:max-h-50 sm:overflow-hidden' : ''
                                 }`}
                         >
-                            <img src={post.attachment} alt="Attachment" className="rounded-md" />
+                            <Image
+                                src={post.attachment}
+                                alt="Attachment"
+                                width={500} // BUT WE CANT KNOW TEH SIZE OF A USERS IMAGE
+                                height={300} // BUT WE CANT KNOW TEH SIZE OF A USERS IMAGE
+                                className="rounded-md"
+                            />
                         </div>
                     }
                 </div>
